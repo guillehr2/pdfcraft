@@ -1,7 +1,6 @@
 # PDF specification and standards parity
 
 > **Last reviewed:** 2026-10-15 · **Last updated:** 2026-10-15 · **Change:** minor (Annex F: linearized save and detection, `core.linearization`) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-14 · **Change:** minor (§12.4.4: page transitions and display times read) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
 
 How much of ISO 32000-2 (PDF 2.0) and the PDF subset standards PdfCraft implements, set against
 what Acrobat Pro implements. This is PdfCraft's equivalent of a "geometry" or "codec" checklist:
@@ -53,7 +52,7 @@ are borrowed; PDF 2.0 additions and most subset standards are missing. **150–2
 | §14.12 | Document parts (DPart) | yes | none | `core.pdf20-dpart` planned |
 | §14.13 | Associated files (`/AF`) | yes | none | `core.pdf20-associated-files` planned |
 | — | Structural validation (Arlington PDF model) | yes (Preflight syntax checks) | none | `core.arlington-validation` planned |
-| — | Optional content (layers) | full | **own** toggle and default state; set-OCG-state actions; no layer editing | `view.layers-panel` |
+| — | Optional content (layers) | full | **own** toggle and default state, reset to the default state; set-OCG-state actions; no layer editing | `view.layers-panel`, `view.layers-reset` |
 | — | Redaction (`/Redact` annotations, applying) | full | **own**: removes glyphs, image pixels, vectors, XObject content, annotations, fields and tags; verifies no residue | `protect.redact-*`, `protect.redaction-verification` |
 
 ## Annotations (§12.5.6)
