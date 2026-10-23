@@ -64,11 +64,7 @@ impl Automation {
             };
         };
         let path = self.resolve(icc, false)?;
-        let size = std::fs::metadata(&path).map_err(|e| ToolError::InvalidArgs(format!("{icc}: {e}")))?.len();
-        if size > MAX_PROFILE as u64 {
-            return Err(ToolError::InvalidArgs(format!("{icc}: an ICC profile can't be larger than {} MB", MAX_PROFILE / (1024 * 1024))));
-        }
-        let bytes = std::fs::read(&path).map_err(|e| ToolError::InvalidArgs(format!("{icc}: {e}")))?;
+        let bytes = read_profile(&path).map_err(|e| ToolError::InvalidArgs(format!("{icc}: {e}")))?;
         let profile = IccProfile::read(bytes).map_err(|e| ToolError::InvalidArgs(format!("{icc}: {e}")))?;
         Ok(Some(OutputCondition::profile(profile, name.map(str::to_owned))))
     }
@@ -108,6 +104,27 @@ impl Automation {
         let conditions: Vec<Value> = CHARACTERIZATIONS.iter().map(|c| json!({ "id": c.id, "condition": c.condition })).collect();
         Ok(json!({ "registry": ICC_REGISTRY, "default": CHARACTERIZATIONS.first().map(|c| c.id), "conditions": conditions }))
     }
+}
+
+/// An ICC profile file's bytes: refused when the path isn't a regular file (a device or a pipe
+/// would never end), or when it holds more than [`MAX_PROFILE`] bytes, even if it grew after it
+/// was measured.
+pub(crate) fn read_profile(path: &std::path::Path) -> std::result::Result<Vec<u8>, String> {
+    use std::io::Read;
+    let too_large = || format!("an ICC profile can't be larger than {} MB", MAX_PROFILE / (1024 * 1024));
+    let meta = std::fs::metadata(path).map_err(|e| e.to_string())?;
+    if !meta.is_file() {
+        return Err("not a file".into());
+    }
+    if meta.len() > MAX_PROFILE as u64 {
+        return Err(too_large());
+    }
+    let mut bytes = Vec::new();
+    std::fs::File::open(path).and_then(|f| f.take(MAX_PROFILE as u64 + 1).read_to_end(&mut bytes)).map_err(|e| e.to_string())?;
+    if bytes.len() > MAX_PROFILE {
+        return Err(too_large());
+    }
+    Ok(bytes)
 }
 
 #[cfg(test)]
@@ -279,6 +296,12 @@ mod tests {
         assert!(matches!(a.call("pdfx_convert", &json!({ "doc": doc, "condition": "FOGRA99" })), Err(ToolError::InvalidArgs(_))));
         assert!(a.call("pdfx_convert", &json!({ "doc": doc, "level": "x4", "icc": "../press.icc" })).is_err());
         assert!(matches!(a.call("pdfx_convert", &json!({ "doc": doc, "icc": "page.pdf" })), Err(ToolError::InvalidArgs(_))));
+        // A folder is no profile file: refused before anything is read.
+        std::fs::create_dir_all(dir.join("profiles.icc")).unwrap();
+        match a.call("pdfx_convert", &json!({ "doc": doc, "icc": "profiles.icc" })) {
+            Err(ToolError::InvalidArgs(m)) => assert!(m.contains("not a file"), "{m}"),
+            other => panic!("{other:?}"),
+        }
         // A CMYK page and a registered condition need no profile for PDF/X-1a.
         let r = json(&mut a, "pdfx_convert", json!({ "doc": doc, "level": "x1a:2001", "condition": "cgats tr 006" }));
         assert_eq!((r["converted"].as_bool(), r["compliant"].as_bool()), (Some(true), Some(true)), "{r}");
