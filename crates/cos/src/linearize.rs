@@ -1060,7 +1060,7 @@ impl Document {
         if at >= FIRST_KB || find(data, b"/Linearized", at, data.len().min(FIRST_KB)).is_none() {
             return Linearization::No;
         }
-        let Ok((_, Object::Dict(d))) = parse_indirect_shared(data, at, &|_| None) else { return Linearization::No };
+        let Ok((_, Object::Dict(d))) = parse_indirect_shared(data, at, &|_| None, &Default::default()) else { return Linearization::No };
         if d.get(b"Linearized").and_then(Object::as_f64).is_none() {
             return Linearization::No;
         }
@@ -1089,7 +1089,8 @@ impl Document {
         let starts_there =
             data.get(hint_at).is_some_and(u8::is_ascii_digit) && (hint_at == 0 || data.get(hint_at - 1).is_some_and(|b| crate::is_whitespace(*b)));
         let ends_there = data.get(..hint_end).is_some_and(|d| d.trim_ascii_end().ends_with(b"endobj"));
-        let hint_is_stream = starts_there && ends_there && matches!(parse_indirect_shared(data, hint_at, &|_| None), Ok((_, Object::Stream(_))));
+        let hint_is_stream =
+            starts_there && ends_there && matches!(parse_indirect_shared(data, hint_at, &|_| None, &Default::default()), Ok((_, Object::Stream(_))));
         let entry_is_space = usize::try_from(main_entry).ok().and_then(|t| data.get(t)).is_some_and(|b| crate::is_whitespace(*b));
         if !hint_is_stream || !entry_is_space {
             return Linearization::Stale(StaleReason::Parameters);
