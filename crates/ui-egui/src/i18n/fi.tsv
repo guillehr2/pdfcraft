@@ -222,6 +222,9 @@
 	Not evaluated: {list}	Ei arvioitu: {list}
 	Only the first {n} of each kind are listed.	Kustakin lajista luetellaan vain ensimmäiset {n}.
 	The document has more objects than one check covers; the rest was not checked.	Asiakirjassa on enemmän objekteja kuin yksi tarkistus kattaa; loppuja ei tarkistettu.
+	Checking the structure… {n} objects so far	Tarkistetaan rakennetta… {n} objektia tähän mennessä
+	The check was cancelled.	Tarkistus peruutettiin.
+	The check stopped unexpectedly.	Tarkistus pysähtyi odottamatta.
 	{type} lacks the required entry {key}	Tyypistä {type} puuttuu pakollinen avain {key}
 	{key} in {type} is {found}, but must be {expected}	{key} tyypissä {type} on {found}, mutta sen on oltava {expected}
 	{key} in {type} is {value}, which is not one of {allowed}	{key} tyypissä {type} on {value}, joka ei ole mikään arvoista {allowed}

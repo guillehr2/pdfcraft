@@ -1376,6 +1376,9 @@
 	Not evaluated: {list}	Neevaluate: {list}
 	Only the first {n} of each kind are listed.	Sunt listate doar primele {n} de fiecare tip.
 	The document has more objects than one check covers; the rest was not checked.	Documentul are mai multe obiecte decât acoperă o verificare; restul nu a fost verificat.
+	Checking the structure… {n} objects so far	Se verifică structura… {n} obiecte până acum
+	The check was cancelled.	Verificarea a fost anulată.
+	The check stopped unexpectedly.	Verificarea s-a oprit în mod neașteptat.
 	{type} lacks the required entry {key}	Lui {type} îi lipsește intrarea obligatorie {key}
 	{key} in {type} is {found}, but must be {expected}	{key} din {type} este {found}, dar trebuie să fie {expected}
 	{key} in {type} is {value}, which is not one of {allowed}	{key} din {type} este {value}, care nu este una dintre {allowed}

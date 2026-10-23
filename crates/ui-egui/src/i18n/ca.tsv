@@ -222,6 +222,9 @@
 	Not evaluated: {list}	No avaluat: {list}
 	Only the first {n} of each kind are listed.	Només es mostren els primers {n} de cada tipus.
 	The document has more objects than one check covers; the rest was not checked.	El document té més objectes dels que cobreix una comprovació; la resta no s'ha comprovat.
+	Checking the structure… {n} objects so far	S'està comprovant l'estructura… {n} objectes fins ara
+	The check was cancelled.	S'ha cancel·lat la comprovació.
+	The check stopped unexpectedly.	La comprovació s'ha aturat de manera inesperada.
 	{type} lacks the required entry {key}	A {type} li falta l'entrada obligatòria {key}
 	{key} in {type} is {found}, but must be {expected}	{key} a {type} és {found}, però ha de ser {expected}
 	{key} in {type} is {value}, which is not one of {allowed}	{key} a {type} és {value}, que no és cap de {allowed}

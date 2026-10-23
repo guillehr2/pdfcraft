@@ -205,6 +205,9 @@
 	Not evaluated: {list}	평가되지 않음: {list}
 	Only the first {n} of each kind are listed.	종류별로 처음 {n}개만 표시됩니다.
 	The document has more objects than one check covers; the rest was not checked.	문서의 개체가 한 번의 검사 범위보다 많아 나머지는 검사하지 않았습니다.
+	Checking the structure… {n} objects so far	구조 검사 중… 지금까지 개체 {n}개
+	The check was cancelled.	검사가 취소되었습니다.
+	The check stopped unexpectedly.	검사가 예기치 않게 중지되었습니다.
 	Detect form fields	양식 필드 감지
 	Merge data files into spreadsheet…	데이터 파일을 스프레드시트로 병합…
 	Flatten form fields	양식 필드 평탄화

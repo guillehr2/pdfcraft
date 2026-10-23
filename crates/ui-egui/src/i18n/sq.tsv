@@ -426,6 +426,9 @@
 	Not evaluated: {list}	Të pavlerësuara: {list}
 	Only the first {n} of each kind are listed.	Listohen vetëm {n} të parat e secilit lloj.
 	The document has more objects than one check covers; the rest was not checked.	Dokumenti ka më shumë objekte sesa mbulon një kontroll; pjesa tjetër nuk u kontrollua.
+	Checking the structure… {n} objects so far	Po kontrollohet struktura… {n} objekte deri tani
+	The check was cancelled.	Kontrolli u anulua.
+	The check stopped unexpectedly.	Kontrolli u ndal papritur.
 	Compare this file with an older version: Compare files… in All tools.	Krahaso këtë skedar me një version më të vjetër: Krahaso skedarët… te Të gjitha mjetet.
 	Compatibility	Përputhshmëria
 	Completed	Përfunduar
