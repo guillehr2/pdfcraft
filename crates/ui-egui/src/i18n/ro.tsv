@@ -1937,14 +1937,18 @@ comment menu	Edit	Editare
 	A colour space's ICC profile can't be used to convert its colour	Profilul ICC al unui spațiu de culoare nu poate fi folosit pentru a-i converti culoarea
 	A colour space is nested too deeply to convert	Un spațiu de culoare este imbricat prea adânc pentru a fi convertit
 	The spot colour {} has an alternate that can't be converted to CMYK yet	Culoarea spot {} are o alternativă care nu poate fi convertită încă în CMYK
+	The tint transform of the spot colour {} can't be read or evaluated	Transformarea de nuanță a culorii spot {} nu poate fi citită sau evaluată
+	The tint transform of the spot colour {} can't be resampled into CMYK exactly	Transformarea de nuanță a culorii spot {} nu poate fi reeșantionată exact în CMYK
 	A pattern over RGB or device-independent colour can't be converted to CMYK yet	Un model peste culoare RGB sau independentă de dispozitiv nu poate fi convertit încă în CMYK
-	{} colour can't be converted to CMYK yet	Culoarea {} nu poate fi convertită încă în CMYK
+	A {} colour space's parameters can't be read	Parametrii unui spațiu de culoare {} nu pot fi citiți
 	A content stream can't be read, so its colour can't be converted	Un flux de conținut nu poate fi citit, deci culoarea lui nu poate fi convertită
 	A colour operator's operands don't match its colour space	Operanzii unui operator de culoare nu corespund spațiului său de culoare
 	A content stream is drawn with different resources in different places, so its colour can't be converted	Un flux de conținut este desenat cu resurse diferite în locuri diferite, deci culoarea lui nu poate fi convertită
-	A shading in RGB or device-independent colour can't be converted to CMYK yet	O umbrire în culoare RGB sau independentă de dispozitiv nu poate fi convertită încă în CMYK
-	A picture with other than 8 bits per component can't be converted to CMYK yet	O imagine cu alt număr decât 8 biți pe componentă nu poate fi convertită încă în CMYK
-	A picture with a decode array or a colour-key mask can't be converted to CMYK yet	O imagine cu matrice de decodare sau mască color-key nu poate fi convertită încă în CMYK
+	A shading's colour function can't be read or evaluated	Funcția de culoare a unei umbriri nu poate fi citită sau evaluată
+	A shading's colour function can't be resampled into CMYK exactly	Funcția de culoare a unei umbriri nu poate fi reeșantionată exact în CMYK
+	A shading's data can't be read, so it can't be converted to CMYK	Datele unei umbriri nu pot fi citite, deci nu poate fi convertită în CMYK
+	A mesh shading's colours change too sharply between its corners to convert to CMYK exactly	Culorile unei umbriri mesh se schimbă prea brusc între colțuri pentru a fi convertite exact în CMYK
+	A picture with a colour-key mask can't be converted to CMYK yet	O imagine cu mască color-key nu poate fi convertită încă în CMYK
 	A picture's data can't be read, so it can't be converted to CMYK	Datele unei imagini nu pot fi citite, deci nu poate fi convertită în CMYK
 	A JPEG picture in CMYK can't be converted yet	O imagine JPEG în CMYK nu poate fi convertită încă
 	An indexed colour space's table is too short to convert	Tabelul unui spațiu de culoare indexat este prea scurt pentru a fi convertit

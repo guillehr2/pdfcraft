@@ -1942,14 +1942,18 @@
 	A colour space's ICC profile can't be used to convert its colour	Väriavaruuden ICC-profiilia ei voi käyttää sen värin muuntamiseen
 	A colour space is nested too deeply to convert	Väriavaruus on sisäkkäin liian syvällä muunnettavaksi
 	The spot colour {} has an alternate that can't be converted to CMYK yet	Spottivärillä {} on vaihtoehtoinen väri, jota ei vielä voi muuntaa CMYK:ksi
+	The tint transform of the spot colour {} can't be read or evaluated	Spottivärin {} sävymuunnosta ei voi lukea eikä laskea
+	The tint transform of the spot colour {} can't be resampled into CMYK exactly	Spottivärin {} sävymuunnosta ei voi uudelleennäytteistää tarkasti CMYK:ksi
 	A pattern over RGB or device-independent colour can't be converted to CMYK yet	RGB- tai laitteesta riippumattoman värin päällä olevaa kuviota ei vielä voi muuntaa CMYK:ksi
-	{} colour can't be converted to CMYK yet	Väriä {} ei vielä voi muuntaa CMYK:ksi
+	A {} colour space's parameters can't be read	Väriavaruuden {} parametreja ei voi lukea
 	A content stream can't be read, so its colour can't be converted	Sisältövirtaa ei voi lukea, joten sen väriä ei voi muuntaa
 	A colour operator's operands don't match its colour space	Värioperaattorin operandit eivät vastaa sen väriavaruutta
 	A content stream is drawn with different resources in different places, so its colour can't be converted	Sisältövirta piirretään eri paikoissa eri resursseilla, joten sen väriä ei voi muuntaa
-	A shading in RGB or device-independent colour can't be converted to CMYK yet	RGB- tai laitteesta riippumattoman värin sävytystä ei vielä voi muuntaa CMYK:ksi
-	A picture with other than 8 bits per component can't be converted to CMYK yet	Kuvaa, jossa on muu kuin 8 bittiä komponenttia kohden, ei vielä voi muuntaa CMYK:ksi
-	A picture with a decode array or a colour-key mask can't be converted to CMYK yet	Kuvaa, jossa on dekoodaustaulukko tai väriavainmaski, ei vielä voi muuntaa CMYK:ksi
+	A shading's colour function can't be read or evaluated	Sävytyksen värifunktiota ei voi lukea eikä laskea
+	A shading's colour function can't be resampled into CMYK exactly	Sävytyksen värifunktiota ei voi uudelleennäytteistää tarkasti CMYK:ksi
+	A shading's data can't be read, so it can't be converted to CMYK	Sävytyksen tietoja ei voi lukea, joten sitä ei voi muuntaa CMYK:ksi
+	A mesh shading's colours change too sharply between its corners to convert to CMYK exactly	Verkkosävytyksen värit muuttuvat kulmien välillä liian jyrkästi tarkasti CMYK:ksi muunnettaviksi
+	A picture with a colour-key mask can't be converted to CMYK yet	Kuvaa, jossa on väriavainmaski, ei vielä voi muuntaa CMYK:ksi
 	A picture's data can't be read, so it can't be converted to CMYK	Kuvan tietoja ei voi lukea, joten sitä ei voi muuntaa CMYK:ksi
 	A JPEG picture in CMYK can't be converted yet	CMYK-JPEG-kuvaa ei vielä voi muuntaa
 	An indexed colour space's table is too short to convert	Indeksoidun väriavaruuden taulukko on liian lyhyt muunnettavaksi
