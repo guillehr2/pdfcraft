@@ -203,7 +203,12 @@ fn page_tree(reader: &mut ObjectReader, root: ObjRef, patch: bool) -> Result<Pag
         // A dangling kid or one that is not a dictionary is no page, as viewers read it.
         let Object::Dict(d) = &*object else { continue };
         let kind = d.name(b"Type");
-        let kids = match d.get(b"Kids") {
+        // `/Kids` may be a reference to the array.
+        let indirect = match d.get(b"Kids") {
+            Some(Object::Ref(k)) => Some(reader.get(*k)),
+            _ => None,
+        };
+        let kids = match indirect.as_deref().or(d.get(b"Kids")) {
             Some(Object::Array(kids)) if kind != Some(b"Page") => Some(kids),
             _ => None,
         };

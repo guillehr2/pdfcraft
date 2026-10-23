@@ -4769,5 +4769,17 @@ fn save_as_optimizes_for_fast_web_view_when_the_preference_is_on() {
     let mut restored = PdfCraftApp::new();
     restored.restore(&app.persist());
     assert!(restored.save_as_fast_web_view);
+
+    // A Fast Web View file saved as a copy with the option off: written in full, nothing appended.
+    let again = dir.join("again.pdf");
+    app.save_override = Some(again.to_string_lossy().into_owned());
+    assert!(app.save_active(SaveTarget::As));
+    assert_eq!(on_disk(&again), Linearization::Yes);
+    app.set_option("fast-web-view", "false").unwrap();
+    let copy = dir.join("copy.pdf");
+    app.save_override = Some(copy.to_string_lossy().into_owned());
+    assert!(app.save_active(SaveTarget::As));
+    assert_eq!(on_disk(&copy), Linearization::No);
+    assert_eq!(toast(&app), "Saved copy.pdf");
     let _ = std::fs::remove_dir_all(&dir);
 }

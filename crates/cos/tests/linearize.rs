@@ -453,6 +453,26 @@ fn a_linearized_save_keeps_the_document() {
 }
 
 #[test]
+fn a_page_tree_node_whose_kids_array_is_indirect_is_a_node() {
+    // `/Kids 3 0 R`: the node's two pages are pages, the node is not one.
+    let input = Pdf::new()
+        .obj("<< /Type /Catalog /Pages 2 0 R >>")
+        .obj("<< /Type /Pages /Kids 3 0 R /Count 2 /MediaBox [0 0 200 300] >>")
+        .obj("[4 0 R 5 0 R]")
+        .obj("<< /Type /Page /Parent 2 0 R /Contents 6 0 R >>")
+        .obj("<< /Type /Page /Parent 2 0 R /Contents 6 0 R >>")
+        .stream("", b"0 0 m 100 100 l S")
+        .build();
+    let bytes = linearize(input).bytes;
+    let (_, lin) = parameters(&bytes);
+    assert_eq!(int(&lin, b"N"), 2);
+    let doc = Document::open(Arc::new(bytes.clone())).unwrap();
+    assert_eq!(doc.linearization(), Linearization::Yes);
+    assert_eq!(pages(&doc).len(), 2);
+    assert_eq!(hayro_syntax::Pdf::new(Arc::new(bytes)).expect("hayro opens").pages().len(), 2);
+}
+
+#[test]
 fn inputs_with_object_streams_and_linearized_inputs_linearize_again() {
     let packed = write_full(&Document::open(Arc::new(fixture(None))).unwrap(), &SaveOptions::default()).unwrap();
     assert!(String::from_utf8_lossy(&packed).contains("/ObjStm"));

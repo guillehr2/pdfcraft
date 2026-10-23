@@ -774,6 +774,7 @@ impl PdfCraftApp {
             return false;
         };
         let was_fast = self.session.get(id).and_then(|d| d.linearization()).is_some_and(|l| l.is_fast_web_view());
+        let saved_before = self.session.get(id).map(|d| d.saved_bytes());
         let (bytes, not_optimized) = self.bytes_to_save(id, fast_web_view, full);
         let bytes = match bytes.and_then(|b| self.session.check_save(id, &b).map(|()| b)) {
             Ok(b) => b,
@@ -788,6 +789,7 @@ impl PdfCraftApp {
         }
         // Our own write is not a change on disk to reload (#431).
         self.watch.known_now(id, dest);
+        let appended = !full && saved_before.is_some_and(|b| bytes.starts_with(&b));
         match self.session.mark_saved(id, bytes, Some(dest.to_string())) {
             Ok(()) => {
                 self.forget_recovery(id);
@@ -804,8 +806,9 @@ impl PdfCraftApp {
                     Some(e) => self.notify_fmt("Saved {name} without Fast Web View: {e}", &[("name", &name), ("e", &e)]),
                     None if fast_web_view => self.notify_fmt("Saved {name}, optimized for Fast Web View", &[("name", &name)]),
                     // An incremental save appends after the first page's data (Annex F): say that
-                    // the file lost Fast Web View.
-                    None if was_fast && !fast_now => {
+                    // the file lost Fast Web View. A save written in full (Save As a copy, or a
+                    // change of encryption) appends nothing.
+                    None if was_fast && !fast_now && appended => {
                         self.notify_fmt("Saved {name}. Fast Web View is off: Save adds the changes to the end of the file.", &[("name", &name)]);
                     }
                     None => self.notify_fmt("Saved {name}", &[("name", &name)]),
