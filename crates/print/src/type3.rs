@@ -24,37 +24,54 @@ const MAX_DEPTH: usize = 64;
 /// Objects and resource entries one page's check reads; past it, the page counts as drawing with
 /// a Type 3 font.
 const BUDGET: usize = 20_000;
+/// What one call reads for all its pages together (the Print dialog asks about every page of the
+/// document as it opens); past it, the pages left count as drawing with a Type 3 font.
+const DOCUMENT_BUDGET: usize = 200_000;
 
 /// The pages among `pages` (0-based; each once, in the order given) whose print under `content`
 /// draws with a Type 3 font. Pages past the end are left out.
 pub fn type3_pages(doc: &Document, pages: &[usize], content: Content) -> Vec<usize> {
+    pages_within(doc, pages, content, DOCUMENT_BUDGET)
+}
+
+/// [`type3_pages`], reading at most `budget` objects and entries for all the pages together.
+/// What a page reads in full without meeting a Type 3 font is not read again for a later page:
+/// resources pages share cost their first reading only.
+pub(crate) fn pages_within(doc: &Document, pages: &[usize], content: Content, budget: usize) -> Vec<usize> {
     let all = pdfcraft_model::pages(doc);
     let mut checked = HashSet::new();
     let mut found = Vec::new();
+    let mut clean = HashSet::new();
+    let mut left = budget;
     for &index in pages {
         if !checked.insert(index) {
             continue;
         }
         let Some(page) = all.get(index) else { continue };
-        if Walk::new(doc).page(&page.dict, content) {
+        let mut walk = Walk { doc, seen: HashSet::new(), clean: &clean, left: BUDGET.min(left) };
+        let type3 = walk.page(&page.dict, content);
+        left = left.saturating_sub(BUDGET.min(left) - walk.left);
+        let seen = std::mem::take(&mut walk.seen);
+        if type3 {
             found.push(index);
+        } else {
+            // Everything this page reached was read through without a Type 3 font.
+            clean.extend(seen);
         }
     }
     found
 }
 
-/// One page's reading: the objects already read (so a cycle or a shared resource is read once)
-/// and what is left of the budget.
+/// One page's reading: the objects already read (so a cycle or a shared resource is read once),
+/// those earlier pages read in full without a Type 3 font, and what is left of the budget.
 struct Walk<'a> {
     doc: &'a Document,
     seen: HashSet<ObjRef>,
+    clean: &'a HashSet<ObjRef>,
     left: usize,
 }
 
 impl<'a> Walk<'a> {
-    fn new(doc: &'a Document) -> Self {
-        Walk { doc, seen: HashSet::new(), left: BUDGET }
-    }
 
     /// One more read; `false` once the budget is spent.
     fn spend(&mut self) -> bool {
@@ -67,10 +84,11 @@ impl<'a> Walk<'a> {
         }
     }
 
-    /// `o` resolved, or `None` for a reference this page has already read.
+    /// `o` resolved, or `None` for a reference this page (or an earlier one, without meeting a
+    /// Type 3 font) has already read.
     fn resolve(&mut self, o: &Object) -> Option<Arc<Object>> {
         if let Object::Ref(r) = o
-            && !self.seen.insert(*r)
+            && (self.clean.contains(r) || !self.seen.insert(*r))
         {
             return None;
         }

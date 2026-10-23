@@ -4379,7 +4379,12 @@ impl Session {
         let pictures = match &settings.type3_raster {
             Some(raster) => {
                 let pages = pdfcraft_print::type3_pages(&cos, &settings.pages, settings.content);
-                print_raster::pictures(doc, &pages, raster, hide_comments).map_err(EditError::Print)?
+                if pages.is_empty() {
+                    Default::default()
+                } else {
+                    let printed = pdfcraft_print::printed_copy(&cos, &pages, settings.content);
+                    print_raster::pictures(doc, &printed, &pages, raster).map_err(EditError::Print)?
+                }
             }
             None => Default::default(),
         };

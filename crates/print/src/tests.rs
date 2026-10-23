@@ -838,6 +838,28 @@ fn type3_fonts_are_found_through_forms_patterns_soft_masks_and_printed_annotatio
     assert!(type3_pages(&doc, &[], Content::DocumentAndMarkups).is_empty());
 }
 
+/// Twenty pages sharing one resource dictionary (Helvetica) and a last page with the Type 3 font
+/// of its own. What the first page read in full is not read again for the others, so twenty pages
+/// cost little more than one; a budget too small for the pages counts the ones it doesn't reach
+/// as drawing with a Type 3 font, the side that prints safely.
+#[test]
+fn the_type3_check_reads_shared_resources_once_within_a_budget() {
+    let kids: Vec<usize> = (0..21).map(|i| 8 + 2 * i).collect();
+    let mut pdf = type3_base(&kids, "<< >>").obj("<< /Font << /F1 3 0 R >> >>");
+    for i in 0..21 {
+        let resources = if i == 20 { "<< /Font << /T3 4 0 R >> >>".to_string() } else { "7 0 R".to_string() };
+        assert_eq!(pdf.next_obj(), 8 + 2 * i);
+        pdf = pdf.obj(format!("<< /Type /Page /Parent 2 0 R /Contents {} 0 R /Resources {resources} >>", 9 + 2 * i)).stream("", "BT /F1 9 Tf (Hi) Tj ET");
+    }
+    let doc = open(&pdf);
+    let all: Vec<usize> = (0..21).collect();
+    assert_eq!(type3::pages_within(&doc, &all, Content::DocumentAndMarkups, usize::MAX), [20]);
+    // Two reads for the first page, one for each page after it: all twenty within 25.
+    assert_eq!(type3::pages_within(&doc, &all[..20], Content::DocumentAndMarkups, 25), Vec::<usize>::new());
+    // Within 3, the third page and those after it aren't read: they count.
+    assert_eq!(type3::pages_within(&doc, &all, Content::DocumentAndMarkups, 3), (2..21).collect::<Vec<_>>());
+}
+
 /// Broken, cyclic and hostile resources never panic. What can't be read is not a Type 3 font,
 /// but resources nested past the depth limit or too large for the budget count as one: printing
 /// such a page as a picture is the safe side.

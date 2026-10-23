@@ -41,13 +41,16 @@ pub fn rasterize(doc: &Document, pages: &[usize], raster: &Raster, hide_comments
 /// `doc`'s pages `pages` (0-based) rendered as [`rasterize`] renders them, each as an image
 /// XObject of the page as displayed, keyed by page, for `pdfcraft_print::impose_with_pictures`.
 /// Each picture is compressed as soon as it is drawn, so only one page's pixels are held at once.
-pub fn pictures(doc: &Document, pages: &[usize], raster: &Raster, hide_comments: bool) -> Result<HashMap<usize, Stream>, String> {
+pub fn pictures(doc: &Document, printed: &pdfcraft_cos::Document, pages: &[usize], raster: &Raster) -> Result<HashMap<usize, Stream>, String> {
     if pages.is_empty() {
         return Ok(HashMap::new());
     }
     let dpi = raster.dpi.clamp(72.0, 600.0);
-    let src = doc.export_source();
-    let mut renderer = renderer(&src, hide_comments);
+    // Drawn from the copy that prints what the vector print would (`pdfcraft_print::printed_copy`):
+    // its annotations are the ones that print, so none is hidden here.
+    let mut src = doc.export_source();
+    src.bytes = std::sync::Arc::new(pdfcraft_cos::write_full(printed, &pdfcraft_cos::SaveOptions::default()).map_err(|e| e.to_string())?);
+    let mut renderer = renderer(&src, false);
     let mut out = HashMap::with_capacity(pages.len());
     for &page in pages {
         if out.contains_key(&page) {

@@ -5863,6 +5863,51 @@ fn printing_type3_pages_as_pictures_survives_broken_resources() {
     assert!(!printed.scan_objects().any(|(_, o)| o.as_dict().is_some_and(|d| d.name(b"Subtype") == Some(b"Image"))), "nothing to picture");
 }
 
+/// A page printed as a picture shows what the chosen Comments & Forms prints, as the vector page
+/// would: a comment only with the comments, the page content not with form fields only.
+#[test]
+fn type3_pictures_print_what_the_content_choice_prints() {
+    // Type 3 text in the lower left, a black comment in the upper right, and a form field drawn
+    // with the Type 3 font in the lower right.
+    let pdf = pdfcraft_testkit::Pdf::new()
+        .obj("<< /Type /Catalog /Pages 2 0 R >>")
+        .obj("<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 200 300] >>")
+        .obj("<< /Type /Page /Parent 2 0 R /Contents 4 0 R /Resources << /Font << /F9 5 0 R >> >> /Annots [8 0 R 10 0 R] >>")
+        .stream("", "BT /F9 40 Tf 1 0 0 -1 30 80 Tm <01> Tj ET")
+        .obj(
+            "<< /Type /Font /Subtype /Type3 /FontMatrix [0.001 0 0 -0.001 0 0] /FontBBox [0 -700 600 0] /FirstChar 1 /LastChar 1              /Widths [600] /Encoding << /Type /Encoding /Differences [1 /g3B] >> /CharProcs << /g3B 6 0 R >> /Resources << >> >>",
+        )
+        .stream("", "600 0 0 -700 600 0 d1
+0 -700 600 700 re f")
+        .stream("/Subtype /Form /BBox [0 0 40 40]", "0 g 0 0 40 40 re f")
+        .obj("<< /Type /Annot /Subtype /Square /F 4 /Rect [150 250 190 290] /AP << /N 7 0 R >> >>")
+        .stream("/Subtype /Form /BBox [0 0 30 30] /Resources << /Font << /F9 5 0 R >> >>", "BT /F9 30 Tf 1 0 0 -1 0 25 Tm <01> Tj ET")
+        .obj("<< /Type /Annot /Subtype /Widget /FT /Tx /T (f) /F 4 /Rect [150 20 180 50] /AP << /N 9 0 R >> >>")
+        .build();
+    let mut s = Session::new();
+    let id = s.open("choices.pdf", None, Arc::new(pdf), None).unwrap();
+    let print = |content: print::Content| {
+        let settings = print::Settings {
+            pages: vec![0],
+            layout: print::Layout::Size(print::SizeMode::Actual),
+            content,
+            type3_raster: Some(print::Raster { dpi: 144.0, grayscale: false }),
+            ..Default::default()
+        };
+        ink_box(&s.print_pdf(id, &settings).unwrap(), 0)
+    };
+    // With the comments, the ink reaches the comment at the top; with the document alone, or
+    // with stamps (the comment is no stamp), it stops at the text 210 points lower.
+    let markups = print(print::Content::DocumentAndMarkups);
+    let document = print(print::Content::Document);
+    let stamps = print(print::Content::DocumentAndStamps);
+    assert!(document[1] > markups[1] + 150, "comments {markups:?}, document {document:?}");
+    assert_eq!(stamps, document);
+    // Form fields only: the field on the right, not the page's text 120 points to its left.
+    let fields = print(print::Content::FormFieldsOnly);
+    assert!(fields[0] > document[0] + 100, "fields {fields:?}, document {document:?}");
+}
+
 /// A one-page PDF: a JPEG logo (DCTDecode) at the top and a big text title below it.
 fn jpeg_cover_pdf(logo_y: i32) -> Vec<u8> {
     let mut jpeg = Vec::new();

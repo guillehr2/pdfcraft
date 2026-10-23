@@ -847,6 +847,26 @@ pub fn impose(src: &Document, settings: &Settings) -> Result<Vec<u8>, PrintError
     impose_with_pictures(src, settings, &std::collections::HashMap::new())
 }
 
+/// `src` with each of `pages` as it prints under `content`: only the annotations that print stay
+/// on it, and with [`Content::FormFieldsOnly`] its content goes. The pictures for
+/// [`impose_with_pictures`] are drawn from this, so they show what [`impose`] would print.
+pub fn printed_copy(src: &Document, pages: &[usize], content: Content) -> Document {
+    let mut doc = src.clone();
+    let all = pdfcraft_model::pages(&doc);
+    for &index in pages {
+        let Some(page) = all.get(index) else { continue };
+        let annots = page.dict.get(b"Annots").and_then(|a| doc.resolve(a).as_array().cloned()).unwrap_or_default();
+        let kept: Vec<Object> = annots.into_iter().filter(|a| doc.resolve(a).as_dict().is_some_and(|d| prints(&doc, d, content))).collect();
+        let _ = doc.update_dict(page.obj, |d| {
+            d.set(b"Annots".to_vec(), Object::Array(kept));
+            if content == Content::FormFieldsOnly {
+                d.remove(b"Contents");
+            }
+        });
+    }
+    doc
+}
+
 /// [`impose`], with some pages printed as pictures: `pictures` maps a page (0-based) to an image
 /// XObject (`/Subtype /Image`) of it as displayed, drawn in its place instead of its content and
 /// annotations, so the picture must already show the annotations that print. The other pages go
