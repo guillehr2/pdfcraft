@@ -1,8 +1,6 @@
 # File format parity
 
 > **Last reviewed:** 2026-10-16 · **Last updated:** 2026-10-16 · **Change:** minor (Linearized PDF: object streams and cross-reference streams, `core.linearization`) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
-> **Last reviewed:** 2026-10-15 · **Last updated:** 2026-10-15 · **Change:** minor (Linearized PDF written and detected, `core.linearization`) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
-> **Last reviewed:** 2026-10-12 · **Last updated:** 2026-10-12 · **Change:** minor (XDP data row corrected; BigTIFF in Create PDF) · **Target:** Adobe Acrobat Pro (Acrobat DC, continuous track 26.002.21931, macOS)
 
 Every format Acrobat Pro reads or writes, and PdfCraft's support for it. Acrobat's list comes from
 its bundle's `Info.plist` `CFBundleDocumentTypes` (what it opens) and its public documentation
@@ -58,7 +56,7 @@ features total).
 | Format | Acrobat | PdfCraft | Fidelity | Tests and evidence |
 |---|---|---|---|---|
 | PKCS #12 digital IDs (`.p12`, `.pfx`) | R W | R W (self-signed IDs) | high | OpenSSL-made fixtures (`crates/sign/tests/data/README.md`) |
-| Certificates (`.cer`, `.der`, `.pem`, `.p7c`, `.p7b`) | R W | R (`.cer/.pem/.der/.p12` trust import); W public certificate | good; `.p7c/.p7b` bundles not read | `sign.trust-import` partial, `sign.export-certificate` |
+| Certificates (`.cer`, `.der`, `.pem`, `.p7c`, `.p7b`) | R W | R (`.cer/.pem/.der/.p7b/.p7c/.p12` trust import); W public certificate | good; `.p7c/.p7b` bundles read (DER or PEM), not written | `sign.trust-import` partial, `sign.export-certificate` |
 | CMS / PKCS #7 signatures, RFC 3161 tokens, OCSP, CRL | R W | R W | high | `pdfsig` and OpenSSL oracles |
 
 ## Create PDF from
@@ -112,6 +110,7 @@ features total).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-19 | patch | Certificates row: `.p7b`/`.p7c` bundles (DER or PEM `PKCS7`/`CMS`) are read for trust import. |
 | 2026-10-16 | minor | Linearized PDF: object streams and cross-reference streams by default, each part's objects in object streams of that part; classic tables still available (`core.linearization`) |
 | 2026-10-15 | minor | Linearized PDF (Fast Web View): written by Save As, `doc_save` and the CLI, and detected on open (`core.linearization`) |
 | 2026-10-12 | minor | XDP split into data (read and write for XFA forms, already shipped under `form.xfa-data`) and opening `.xdp` as a document (none). Create PDF reads BigTIFF; malformed GIF headers are no longer detected as images. |
