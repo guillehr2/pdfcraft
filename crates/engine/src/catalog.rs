@@ -347,6 +347,7 @@ pub static TOOL_GROUPS: &[ToolGroup] = &[
                     item("Field properties", "settings-2", "form.field.properties", Ready),
                     item("Tab order by rows", "rows-3", "form.tab_order.row", Ready),
                     item("Tab order by columns", "columns-3", "form.tab_order.column", Ready),
+                    item("Calculation order", "list-ordered", "form.calculation_order", Ready),
                     item("Flatten form fields", "layers", "form.flatten", Ready),
                     item("Import data", "file-input", "form.import_data", Ready),
                     item("Export data", "file-output", "form.export_data", Ready),
@@ -356,6 +357,7 @@ pub static TOOL_GROUPS: &[ToolGroup] = &[
                 title: "Add form components",
                 items: &[
                     item("Text field", "text-cursor-input", "form.add.text", Ready),
+                    item("Text field table", "grid-3x3", "form.add.text_table", Ready),
                     item("Checkbox", "check-circle-2", "form.add.checkbox", Ready),
                     item("Radio button", "circle", "form.add.radio", Ready),
                     item("Drop-down list", "chevron-down", "form.add.combo", Ready),
@@ -496,7 +498,7 @@ pub static TOOL_GROUPS: &[ToolGroup] = &[
             items: &[
                 item("Save as PDF/A", "file-check", "standards.pdfa", Ready),
                 item("Verify PDF/X", "file-check", "standards.pdfx", Ready),
-                item("Save as PDF/X", "file-check", "standards.pdfx", Planned("M11")),
+                item("Save as PDF/X", "file-check", "standards.pdfx-save", Planned("M11")),
                 item("Save as PDF/UA", "accessibility", "standards.pdfua", Planned("M11")),
                 item("Preflight", "file-check", "preflight.run", Ready),
             ],
