@@ -98,7 +98,12 @@ fn pages(doc: &Document) -> Vec<ObjRef> {
     let mut stack = vec![catalog.reference(b"Pages").unwrap()];
     while let Some(r) = stack.pop() {
         let d = doc.get(r).as_dict().cloned().unwrap();
-        match d.get(b"Kids").and_then(Object::as_array) {
+        // `/Kids` may be a reference to the array.
+        let kids = match d.get(b"Kids") {
+            Some(Object::Ref(k)) => doc.get(*k).as_array().cloned(),
+            other => other.and_then(Object::as_array).cloned(),
+        };
+        match kids {
             Some(kids) => kids.iter().rev().for_each(|k| stack.push(k.as_ref().unwrap())),
             None => out.push(r),
         }
