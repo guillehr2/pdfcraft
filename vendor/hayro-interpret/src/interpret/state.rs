@@ -270,7 +270,7 @@ pub(crate) struct GraphicsState<'a> {
     pub(crate) transfer_function: Option<ActiveTransferFunction>,
     pub(crate) blend_mode: BlendMode,
 
-    // PdfCraft patch (35): the overprint parameters (ISO 32000-2 §8.6.7, `OP`, `op` and `OPM`
+    // PdfCraft patch (53): the overprint parameters (ISO 32000-2 §8.6.7, `OP`, `op` and `OPM`
     // in a graphics state parameter dictionary). They only matter when drawing separations.
     pub(crate) overprint_stroke: bool,
     pub(crate) overprint_fill: bool,
@@ -417,7 +417,7 @@ pub(crate) fn handle_gs_single<'a>(
                 .map(|n| if n == 0.0 { 0.01 } else { n })
                 .collect();
         }
-        // PdfCraft patch (35): `OP` sets stroking overprint, and non-stroking overprint too when
+        // PdfCraft patch (53): `OP` sets stroking overprint, and non-stroking overprint too when
         // the dictionary has no `op` of its own; `OPM` is 0 or 1 (§8.6.7).
         "OP" => {
             let overprint = dict.get::<bool>(key)?;

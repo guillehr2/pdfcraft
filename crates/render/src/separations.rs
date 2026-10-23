@@ -2,7 +2,7 @@
 //! that shows what the inks print, overprinting included.
 //!
 //! **How a plate is made.** The page is rendered once per ink with hayro-interpret's plate mode
-//! (`InterpreterSettings::plate`, vendored patch 35): every paint draws that ink's tint as a
+//! (`InterpreterSettings::plate`, vendored patch 53): every paint draws that ink's tint as a
 //! gray film instead of its colour, and a paint that overprints without specifying the ink
 //! leaves the film as it is (ISO 32000-2 §8.6.7). Clipping, anti-aliasing, soft masks,
 //! transparency groups and blending stay the renderer's own, so a plate is the page as drawn,
@@ -15,7 +15,7 @@
 //! when the document says what that is: an output intent (ISO 32000-2 §14.11.5) whose
 //! destination profile is CMYK with PCS-to-device tables. RGB, CIE-based and ICCBased colours,
 //! and ICCBased CMYK in another profile, then go through that profile, relative colorimetric
-//! (vendored patch 36, `color::CmykSimulation`). Without one they go through sRGB and the device
+//! (vendored patch 54, `color::CmykSimulation`). Without one they go through sRGB and the device
 //! formulas of §10.4.2.4 (black generation and undercolour removal the identity), and
 //! ICCBased CMYK is taken as it is. [`Separations::simulation`] says which was used. See the
 //! crate README for what is approximated.
@@ -866,7 +866,7 @@ mod tests {
         assert_eq!(s.pixel_at(0.999, 0.0), Some((39, 0)));
     }
 
-    // Separating through an output intent's profile (vendored patch 36).
+    // Separating through an output intent's profile (vendored patch 54).
 
     const PRESS: &str = "PdfCraft synthetic press";
 

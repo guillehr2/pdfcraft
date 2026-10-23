@@ -22,7 +22,7 @@ and the page as the chosen inks print it (`composite`, optionally with the pixel
 coverage limit painted in a warning colour).
 
 **How a plate is made.** The page is rendered once per ink with hayro-interpret's plate mode
-(`InterpreterSettings::plate`, vendored patch 35). Every paint draws that ink's tint as a gray
+(`InterpreterSettings::plate`, vendored patch 53). Every paint draws that ink's tint as a gray
 film instead of its colour; a paint that overprints without specifying the ink leaves the film
 alone. Everything else — clipping, anti-aliasing, soft masks, transparency groups, blending,
 patterns, Type 3 glyphs, annotations — is the renderer's own, so a plate is the page as drawn,
@@ -55,7 +55,7 @@ found through `InterpreterSettings::ink_sink`; an ink only a soft mask uses is n
 plates simulate. It comes from the page's own `/OutputIntents` (PDF 2.0), else the document
 catalog's (ISO 32000-2 §14.11.5): the first output intent whose `/DestOutputProfile` is a CMYK
 ICC profile with PCS-to-device (BToA) tables, a `GTS_PDFX` intent before the others. Process
-colour then converts to that profile's CMYK with moxcms (vendored patch 36,
+colour then converts to that profile's CMYK with moxcms (vendored patch 54,
 `color::CmykSimulation`), relative colorimetric — the initial rendering intent of §8.6.5.8,
 ICC.1's media-relative colorimetric intent, through the profile's colorimetric (tag 1) tables, or
 its perceptual (tag 0) ones when it has no others:

@@ -155,7 +155,7 @@ pub(crate) fn get_paint<'a>(context: &Context<'a>, is_stroke: bool) -> Paint<'a>
         context.get().non_stroke_data()
     };
 
-    // PdfCraft patch (35): report spot inks, and draw separations.
+    // PdfCraft patch (53): report spot inks, and draw separations.
     if let Some(sink) = &context.settings.ink_sink {
         data.color_space.report_spots(sink);
         if let Some(Pattern::Shading(s)) = &data.pattern {
@@ -178,6 +178,8 @@ pub(crate) fn get_paint<'a>(context: &Context<'a>, is_stroke: bool) -> Paint<'a>
                 pattern.set_transfer_function(tf.clone());
             }
 
+            // PdfCraft patch: `CA`/`ca` can be set by a `gs` after the pattern colour operator, so use the alpha current at paint time.
+            pattern.set_alpha(data.alpha);
             pattern.pre_concat_transform(context.root_transform());
 
             Paint::Pattern(Box::new(pattern))
@@ -196,7 +198,7 @@ pub(crate) fn get_paint<'a>(context: &Context<'a>, is_stroke: bool) -> Paint<'a>
     }
 }
 
-/// PdfCraft patch (35): the paint `data` as drawn on `plate`: a colour becomes its film, a
+/// PdfCraft patch (53): the paint `data` as drawn on `plate`: a colour becomes its film, a
 /// shading is converted through the plate, and a paint that leaves the plate as it is (an
 /// overprinting paint that doesn't specify the plate's ink, or the `None` colorant) becomes
 /// transparent. Transfer functions are left out: they act on device colorants, which the
