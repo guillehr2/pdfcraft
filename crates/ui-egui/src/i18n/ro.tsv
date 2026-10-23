@@ -2774,3 +2774,15 @@ theme	Appearance	Aspect
 	field names can't contain a period: {name}	numele câmpurilor nu pot conține punct: {name}
 	two cells would both be named {name}	două celule s-ar numi amândouă {name}
 	a field named {name} already exists	există deja un câmp numit {name}
+	Simulate overprinting	Simulare supratipar
+	Separating page {n}…	Se separă pagina {n}…
+	The page could not be separated: {error}	Pagina nu a putut fi separată: {error}
+	Inks	Cerneluri
+	Too many spot inks to separate: {names}	Prea multe cerneluri spot de separat: {names}
+	Total area coverage	Acoperire totală a suprafeței
+	Page maximum: {n}%	Maximul paginii: {n}%
+	Point at the page to read its ink coverage.	Indicați pagina pentru a citi acoperirea cu cerneală.
+	Highlight coverage above	Evidențiere acoperire peste
+	Simulation: {profile}	Simulare: {profile}
+	Simulation: device formulas	Simulare: formule de dispozitiv
+	No usable CMYK output intent: RGB and CIE-based colours separate by the ISO 32000 device formulas.	Nu există o intenție de ieșire CMYK utilizabilă: culorile RGB și cele bazate pe CIE se separă după formulele de dispozitiv din ISO 32000.
