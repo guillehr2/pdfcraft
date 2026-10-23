@@ -697,6 +697,11 @@ impl PdfCraftApp {
             Some(save_id) => {
                 let Some(generation) = self.session.get(id).map(|d| d.edit_generation()) else { return false };
                 self.host_saves.wait(save_id, crate::host::WaitingSave { id, generation, bytes, name: name.to_string(), after });
+                // The next frame starts the timeout and schedules a frame for it, even if nothing
+                // else asks for one before the page answers.
+                if let Some(ctx) = &self.ctx {
+                    ctx.request_repaint();
+                }
                 false
             }
             // The page reports where the file went (and any failure) itself.

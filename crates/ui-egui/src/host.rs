@@ -174,22 +174,28 @@ impl PdfCraftApp {
         }
     }
 
-    /// [`Self::poll_host`] without the repaint: at `now` (seconds).
+    /// [`Self::poll_host`] without the repaint: at `now` (seconds). The settings come first, then
+    /// the saves whose time is up, then the answers: an answer read on the frame its save times
+    /// out comes too late, like any later one.
     pub(crate) fn host_messages(&mut self, now: f64) {
         let messages = std::mem::take(&mut *self.host_inbox.lock().unwrap_or_else(PoisonError::into_inner));
-        for message in messages {
+        let (settings, answers): (Vec<_>, Vec<_>) = messages.into_iter().partition(|m| matches!(m, HostMessage::Init { .. }));
+        for message in settings {
             if let HostMessage::Init { acknowledge_saves, save_timeout_ms } = message {
                 self.host_saves.configure(acknowledge_saves, save_timeout_ms);
-            } else if let Some((save, answer)) = self.host_saves.answer(&message) {
+            }
+        }
+        for save in self.host_saves.expire(now) {
+            self.host_not_stored(&save, tl!("the website did not confirm that it stored the file"));
+        }
+        for message in answers {
+            if let Some((save, answer)) = self.host_saves.answer(&message) {
                 match answer {
                     Ok(()) => self.host_stored(save),
                     Err(error) if error.trim().is_empty() => self.host_not_stored(&save, tl!("the website did not confirm that it stored the file")),
                     Err(error) => self.host_not_stored(&save, &error),
                 }
             }
-        }
-        for save in self.host_saves.expire(now) {
-            self.host_not_stored(&save, tl!("the website did not confirm that it stored the file"));
         }
     }
 
@@ -463,6 +469,31 @@ mod tests {
         assert!(notice(&app).starts_with("Couldn't save Quote.pdf"), "{}", notice(&app));
         tell(&mut app, saved(&id), 41.0);
         assert!(app.has_unsaved_work(0), "too late to count");
+    }
+
+    #[test]
+    fn an_answer_read_on_the_frame_its_save_times_out_comes_too_late() {
+        let (mut app, sent) = hosted(true);
+        app.save_active(SaveTarget::InPlace);
+        let id = last_id(&sent);
+        app.host_messages(10.0);
+        tell(&mut app, saved(&id), 40.0);
+        assert!(app.has_unsaved_work(0));
+        assert!(notice(&app).starts_with("Couldn't save Quote.pdf"), "{}", notice(&app));
+    }
+
+    #[test]
+    fn a_save_that_starts_waiting_asks_for_the_frame_that_times_it() {
+        let (mut app, _sent) = hosted(true);
+        let ctx = egui::Context::default();
+        // Use up the context's first repaint demand, so only the save can ask for another.
+        for _ in 0..2 {
+            let _ = ctx.run_logic(&egui::RawInput::default(), |_| {});
+        }
+        assert!(!ctx.has_requested_repaint());
+        app.ctx = Some(ctx.clone());
+        assert!(!app.save_active(SaveTarget::InPlace));
+        assert!(ctx.has_requested_repaint(), "the next frame starts the save's timeout");
     }
 
     #[test]
