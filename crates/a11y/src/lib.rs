@@ -23,6 +23,22 @@ mod report;
 mod structure;
 mod tags;
 
+#[cfg(test)]
+thread_local! {
+    /// Marked-content stack entries read to decide which marks enclose an operator, for the tests
+    /// that keep that constant per operator.
+    static MARK_READS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    /// Page content passes made to find figure bounds.
+    static BOUNDS_PASSES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+/// Counts `n` marked-content stack reads (tests only).
+#[inline]
+fn count_mark_reads(_n: usize) {
+    #[cfg(test)]
+    MARK_READS.with(|c| c.set(c.get().saturating_add(_n)));
+}
+
 pub use alt::{AltError, ArtifactError, Figure, figures, mark_decorative, mark_tag_artifact, set_alt};
 pub use autotag::{AutoTagError, AutoTagResult, autotag_text};
 pub use autotag_fields::tag_form_fields;
@@ -576,6 +592,7 @@ pub const WORDINGS: &[&str] = &[
     "The document sets no language (Lang), and neither do its tags",
     "The bookmarks have no language: the document sets none (Lang)",
     "The metadata has no language: the document sets none (Lang) and the metadata no xml:lang",
+    "The document's language (Lang) {} isn't a language tag",
     // PDF/UA: the role map and the structure tree, then what goes in their `{what}`.
     "Standard structure type {} is remapped to {to}",
     "Role map entry {} leads round in a circle",
@@ -583,12 +600,18 @@ pub const WORDINGS: &[&str] = &[
     "The document uses both H and numbered headings (H1–H6)",
     "its alternate text, actual text or expansion has no language (Lang)",
     "no language (Lang) on it, above it or on the document",
+    "its language (Lang) isn't a language tag",
     "more than one H heading in it",
     "not in a TOC",
     "not allowed directly in a TOC",
     "not in a Ruby",
     "not in a Warichu",
     "not in a Table",
+    "not allowed directly inside {in}",
+    "a second {} in its table",
+    "rows both directly in it and in THead, TBody or TFoot",
+    "not the first or last child of its table",
+    "not the first child of its list",
     "a header cell with no Scope, in a table that doesn't use Headers",
     "no ID",
     "its ID is another Note's too",
@@ -759,6 +782,18 @@ pub(crate) fn check_scanned(doc: &Document, options: &Options, pages: &[pdfcraft
                     finding.bbox = Some(*bbox);
                 }
             }
+        }
+        // A page read only in part may hold what the scan didn't find: text that makes the
+        // document more than images, untagged content, or a font without Unicode mappings.
+        let unsure = !scan.incomplete.is_empty()
+            && match rule {
+                Rule::ImageOnly => !scan.has_text,
+                Rule::TaggedContent | Rule::CharacterEncoding => findings.is_empty(),
+                _ => false,
+            };
+        if unsure {
+            results.push(RuleResult { rule, status: Status::Manual, findings: Vec::new() });
+            continue;
         }
         if total > MAX_FINDINGS {
             let more = total - MAX_FINDINGS;

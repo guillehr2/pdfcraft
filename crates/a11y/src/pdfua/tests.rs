@@ -362,12 +362,171 @@ fn every_text_needs_a_language() {
     // With a language somewhere, the tags that have none are named one by one.
     objs[DOCUMENT] = ua()[DOCUMENT].replacen("<< /S /H1 /Pg 3 0 R /K 0 >>", "<< /S /H1 /Pg 3 0 R /Lang (en) /K 0 >>", 1);
     let r = verified(&objs);
-    assert!(messages(&r, "11-001").contains(&"Figure element on page 1: no language (Lang) on it, above it or on the document".to_string()));
+    assert!(messages(&r, "11-001").contains(&"TH element on page 1: no language (Lang) on it, above it or on the document".to_string()));
     assert_eq!(messages(&r, "11-002"), ["Figure element on page 1: its alternate text, actual text or expansion has no language (Lang)"]);
-    // Exactly the tags with page content of their own: the Link and Form tags, which hold only
-    // an annotation (OBJR), are left to 11-004 and 11-005; H1 has its own language.
+    // Exactly the tags whose page content shows text: the Figure shows an image only, the Link
+    // and Form tags hold only an annotation (OBJR), left to 11-004 and 11-005, and H1 has its own
+    // language.
     let named: Vec<String> = messages(&r, "11-001").iter().map(|m| m.split(' ').next().unwrap_or_default().to_owned()).collect();
-    assert_eq!(named, ["Figure", "TH", "TD"]);
+    assert_eq!(named, ["TH", "TD"]);
+}
+
+/// The tags that 11-001 names, by type, for `objs`.
+fn without_language(objs: &[String]) -> Vec<String> {
+    messages(&verified(objs), "11-001").iter().map(|m| m.split(' ').next().unwrap_or_default().to_owned()).collect()
+}
+
+#[test]
+fn text_takes_its_language_from_marked_content_too() {
+    // H1 sets a language, so the other tags are named one by one.
+    let mut objs = ua();
+    objs[CATALOG] = objs[CATALOG].replace("/Lang (en-US) ", "");
+    objs[DOCUMENT] = objs[DOCUMENT].replacen("<< /S /H1 /Pg 3 0 R /K 0 >>", "<< /S /H1 /Pg 3 0 R /Lang (en) /K 0 >>", 1);
+    let th = "/TH << /MCID 2 >> BDC BT /F1 12 Tf 20 100 Td (A) Tj ET EMC";
+    let td = "/TD << /MCID 3 >> BDC BT /F1 12 Tf 20 80 Td (1) Tj ET EMC";
+    let with_content = |th_ops: &str, td_ops: &str| {
+        let mut objs = objs.clone();
+        objs[CONTENT] = stream(&PAGE_OPS.replace(th, th_ops).replace(td, td_ops));
+        objs
+    };
+    assert_eq!(without_language(&with_content(th, td)), ["TH", "TD"]);
+    // A Span with a language around the text inside the TH's marked content (ISO 32000-1
+    // §14.9.2.1), a language on the TD's own property list, and a Span around the TD's sequence.
+    let th_spanned = "/TH << /MCID 2 >> BDC /Span << /Lang (en-US) >> BDC BT /F1 12 Tf 20 100 Td (A) Tj ET EMC EMC";
+    assert_eq!(without_language(&with_content(th_spanned, td)), ["TD"]);
+    assert_eq!(without_language(&with_content(th_spanned, "/TD << /MCID 3 /Lang (de) >> BDC BT /F1 12 Tf 20 80 Td (1) Tj ET EMC")), Vec::<String>::new());
+    let td_around = "/Span << /Lang (de) >> BDC /TD << /MCID 3 >> BDC BT /F1 12 Tf 20 80 Td (1) Tj ET EMC EMC";
+    assert_eq!(without_language(&with_content(th_spanned, td_around)), Vec::<String>::new());
+    // Covering part of the text is not enough.
+    let half = "/TD << /MCID 3 >> BDC /Span << /Lang (de) >> BDC BT /F1 12 Tf 20 80 Td (1) Tj ET EMC BT 40 80 Td (2) Tj ET EMC";
+    assert_eq!(without_language(&with_content(th_spanned, half)), ["TD"]);
+    // A property list's language that isn't a language tag covers nothing.
+    assert_eq!(without_language(&with_content(&th_spanned.replace("(en-US)", "(en_US)"), td_around)), ["TH"]);
+
+    // No language on any tag, but on every text's marked content: nothing is missing.
+    let mut bare = with_content(th_spanned, td_around);
+    bare[DOCUMENT] = ua()[DOCUMENT].clone();
+    bare[CONTENT] = stream(
+        &PAGE_OPS
+            .replace(th, th_spanned)
+            .replace(td, td_around)
+            .replace("/H1 << /MCID 0 >> BDC", "/H1 << /MCID 0 /Lang (en) >> BDC"),
+    );
+    let r = verified(&bare);
+    assert_eq!(outcome(&r, "11-001"), Outcome::Passed);
+    // The figure's alternate text still has none.
+    assert_eq!(messages(&r, "11-002"), [NO_LANGUAGE]);
+}
+
+#[test]
+fn a_language_must_be_a_language_tag() {
+    // The tag forms of the veraPDF corpus's 7.2-t29 files: catalog languages a verifier must
+    // refuse, and ones it must accept.
+    for bad in ["portugues-pt", "1-pt", "-pt", "nl-1234abcde", "пт-PT", "en--US", "en-", "en US", "en_US"] {
+        assert!(!crate::content::is_language_tag(bad), "{bad}");
+    }
+    for good in ["portugue-pt", "p", "nd", "PT", "en-US", "zh-Hant-TW", "de-CH-1996", "x-klingon", "i-default", "sl-rozaj-biske"] {
+        assert!(crate::content::is_language_tag(good), "{good}");
+    }
+
+    let mut objs = ua();
+    objs[CATALOG] = objs[CATALOG].replace("/Lang (en-US)", "/Lang (1-pt)");
+    let r = verified(&objs);
+    assert_eq!(messages(&r, "11-001"), ["The document's language (Lang) 1-pt isn't a language tag"]);
+    // A tag's language that isn't a language tag is named as such.
+    objs[DOCUMENT] = objs[DOCUMENT].replacen("<< /S /H1 /Pg 3 0 R /K 0 >>", "<< /S /H1 /Pg 3 0 R /Lang (en) /K 0 >>", 1).replacen(
+        "<< /S /TD /K 3 >>",
+        "<< /S /TD /Lang (portugues-pt) /K 3 >>",
+        1,
+    );
+    let r = verified(&objs);
+    assert!(messages(&r, "11-001").contains(&"TD element on page 1: its language (Lang) isn't a language tag".to_string()), "{:?}", messages(&r, "11-001"));
+}
+
+#[test]
+fn annotations_with_no_area_on_the_page_are_not_presented() {
+    // On a 200 × 200 page: a note with a point for a rectangle (the veraPDF corpus's
+    // [800 800 800 800]), a free text note beside the page, and a field of no width; none is
+    // shown, so none needs a tag or a description. A note that is partly on the page is.
+    let mut objs = ua();
+    objs[PAGE] = objs[PAGE].replace("/Annots [10 0 R 11 0 R]", "/Annots [10 0 R 11 0 R 15 0 R 16 0 R 17 0 R 18 0 R]");
+    objs.extend([
+        "<< /Type /Annot /Subtype /Text /Rect [800 800 800 800] /F 4 >>".to_string(),
+        "<< /Type /Annot /Subtype /FreeText /Rect [300 0 400 50] /F 4 /DA (/Helv 12 Tf 0 g) >>".into(),
+        "<< /Type /Annot /Subtype /Widget /FT /Tx /T (hidden) /Rect [0 0 0 50] /F 4 >>".into(),
+        "<< /Type /Annot /Subtype /Text /Rect [190 190 260 260] /F 4 >>".into(),
+    ]);
+    let r = verified(&objs);
+    assert_eq!(failed(&r), ids(&["28-002", "28-004"]));
+    assert_eq!(messages(&r, "28-002"), ["Text annotation on page 1 isn't tagged"]);
+    assert_eq!(r.result("28-002").and_then(|x| x.findings[0].object).map(|o| o.num), Some(18));
+}
+
+#[test]
+fn a_file_attachment_names_its_file_in_f_and_uf() {
+    let attached = |fs: &str| {
+        let mut objs = ua();
+        objs[PAGE] = objs[PAGE].replace("/Annots [10 0 R 11 0 R]", "/Annots [10 0 R 11 0 R 15 0 R]");
+        objs[DOCUMENT] = objs[DOCUMENT].replace("/Obj 11 0 R >> >> ]", "/Obj 11 0 R >> >> << /S /Annot /Pg 3 0 R /K << /Type /OBJR /Obj 15 0 R >> >> ]");
+        objs.push(format!("<< /Type /Annot /Subtype /FileAttachment /Rect [0 0 9 9] /Contents (Data) /StructParent 3 /FS << /Type /Filespec {fs} >> >>"));
+        failed(&verified(&objs))
+    };
+    assert!(attached("/F (a.csv) /UF (a.csv)").is_empty());
+    // An empty string names no file (the veraPDF corpus's 7.18.7-t01-fail-c and -d).
+    assert_eq!(attached("/F () /UF (a.csv)"), ids(&["28-016"]));
+    assert_eq!(attached("/F (a.csv) /UF ()"), ids(&["28-016"]));
+}
+
+#[test]
+fn tables_and_lists_hold_only_the_kids_iso_32000_allows() {
+    let base = "<< /S /H1 /K 0 >> << /S /Figure /Alt (x) /K 1 >> << /S /P /K 2 >> << /S /P /K 3 >> \
+                << /S /Link /K << /Type /OBJR /Obj 10 0 R >> >> << /S /Form /K << /Type /OBJR /Obj 11 0 R >> >>";
+    let td = "<< /S /TD >>";
+    let tables = [
+        // A Span in a row.
+        format!("<< /S /Table /K [ << /S /TR /K [ {td} << /S /Span >> ] >> ] >>"),
+        // A Span in a row group, and a second THead.
+        format!("<< /S /Table /K [ << /S /THead /K [ << /S /TR /K {td} >> << /S /Span >> ] >> << /S /THead >> << /S /TBody /K << /S /TR /K {td} >> >> ] >>"),
+        // Rows directly in the table, and in a TBody.
+        format!("<< /S /Table /K [ << /S /TR /K {td} >> << /S /TBody /K << /S /TR /K {td} >> >> ] >>"),
+        // A Caption between rows, and a P in the table.
+        format!("<< /S /Table /K [ << /S /TR /K {td} >> << /S /Caption >> << /S /TR /K {td} >> << /S /P >> ] >>"),
+        // Rows of two cells and one, with a Caption last (allowed).
+        format!("<< /S /Table /K [ << /S /TR /K [ {td} {td} ] >> << /S /TR /K {td} >> << /S /Caption >> ] >>"),
+    ];
+    let lists = [
+        // A Span in a list item, a P in the list, and a Caption last.
+        "<< /S /L /K [ << /S /LI /K [ << /S /Lbl >> << /S /LBody >> << /S /Span >> ] >> << /S /P >> << /S /Caption >> ] >>",
+        // A Caption first and a nested list (allowed).
+        "<< /S /L /K [ << /S /Caption >> << /S /LI >> << /S /L /K << /S /LI >> >> ] >>",
+        // Labels outside list items, in a contents entry and in a section (allowed: ISO 32000-2
+        // Table 368 makes Lbl a general type).
+        "<< /S /TOC /K << /S /TOCI /K << /S /P /K << /S /Reference /K << /S /Link /K << /S /Lbl >> >> >> >> >> >> << /S /Sect /K << /S /Lbl >> >>",
+    ];
+    let r = verified(&with_kids(&format!("{base} {} {}", tables.join(" "), lists.join(" "))));
+    assert_eq!(failed(&r), ids(&["09-004", "09-005"]));
+    let set = |id| messages(&r, id).into_iter().collect::<BTreeSet<String>>();
+    let want = |list: &[&str]| list.iter().map(|s| s.to_string()).collect::<BTreeSet<String>>();
+    assert_eq!(
+        set("09-004"),
+        want(&[
+            "Span element on page 1: not allowed directly inside TR",
+            "Span element on page 1: not allowed directly inside THead",
+            "THead element on page 1: a second THead in its table",
+            "Table element on page 1: rows both directly in it and in THead, TBody or TFoot",
+            "Caption element on page 1: not the first or last child of its table",
+            "P element on page 1: not allowed directly inside Table",
+            "Table element on page 1: rows have between 1 and 2 columns",
+        ])
+    );
+    assert_eq!(
+        set("09-005"),
+        want(&[
+            "Span element on page 1: not allowed directly inside LI",
+            "P element on page 1: not allowed directly inside L",
+            "Caption element on page 1: not the first child of its list",
+        ])
+    );
 }
 
 #[test]

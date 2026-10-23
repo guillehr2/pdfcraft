@@ -56,7 +56,7 @@ features total).
 | Format | Acrobat | PdfCraft | Fidelity | Tests and evidence |
 |---|---|---|---|---|
 | PKCS #12 digital IDs (`.p12`, `.pfx`) | R W | R W (self-signed IDs) | high | OpenSSL-made fixtures (`crates/sign/tests/data/README.md`) |
-| Certificates (`.cer`, `.der`, `.pem`, `.p7c`, `.p7b`) | R W | R (`.cer/.pem/.der/.p12` trust import); W public certificate | good; `.p7c/.p7b` bundles not read | `sign.trust-import` partial, `sign.export-certificate` |
+| Certificates (`.cer`, `.der`, `.pem`, `.p7c`, `.p7b`) | R W | R (`.cer/.pem/.der/.p7b/.p7c/.p12` trust import); W public certificate | good; `.p7c/.p7b` bundles read (DER or PEM), not written | `sign.trust-import` partial, `sign.export-certificate` |
 | CMS / PKCS #7 signatures, RFC 3161 tokens, OCSP, CRL | R W | R W | high | `pdfsig` and OpenSSL oracles |
 
 ## Create PDF from
@@ -110,6 +110,7 @@ features total).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-19 | patch | Certificates row: `.p7b`/`.p7c` bundles (DER or PEM `PKCS7`/`CMS`) are read for trust import. |
 | 2026-10-15 | minor | PDF/UA: verify (partial) |
 | 2026-10-12 | minor | XDP split into data (read and write for XFA forms, already shipped under `form.xfa-data`) and opening `.xdp` as a document (none). Create PDF reads BigTIFF; malformed GIF headers are no longer detected as images. |
 | 2026-10-11 | minor | #773: inferred tables have no invented borders; rotated or overlapping invoice pages use floating shapes and page sections. Full Office layout fidelity remains partial. |
