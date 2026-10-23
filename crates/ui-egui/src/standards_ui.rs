@@ -156,6 +156,11 @@ impl PdfCraftApp {
         let Some((_, id)) = self.active_ids() else { return };
         let level = self.pdfx.level;
         self.pdfx.findings = self.session.get(id).and_then(|d| d.pdfx_verify(level));
+        // Nothing to verify in a document PdfCraft can't read for editing (an empty list would
+        // say it conforms): the dialog stays as it was, and the notice says why.
+        if self.pdfx.findings.is_none() {
+            self.notify_tr("This document can't be checked: it couldn't be read for editing");
+        }
     }
 }
 
