@@ -431,6 +431,38 @@ fn annotations_get_tags_and_parent_tree_entries() {
     assert_eq!(page_tagging(&doc, 0).unwrap().annotations[0].tag, None);
 }
 
+#[test]
+fn a_new_key_is_never_one_a_page_already_holds() {
+    // The page holds /StructParents 0, but the parent tree lists nothing and the root has no
+    // /ParentTreeNextKey: the link must not get key 0 too.
+    let mut doc = tagged();
+    doc.update_dict(r(13), |d| d.set(b"Nums".to_vec(), Object::Array(Vec::new()))).unwrap();
+    doc.update_dict(r(7), |d| {
+        d.remove(b"ParentTreeNextKey");
+    })
+    .unwrap();
+    tag_annotation(&mut doc, 0, r(14), None).unwrap();
+    assert_eq!(doc.get(r(14)).as_dict().unwrap().int(b"StructParent"), Some(1));
+}
+
+#[test]
+fn an_object_two_tags_own_is_reported_whatever_tag_comes_first() {
+    // The link is referenced from an inline Link tag, then from an indirect one.
+    let mut doc = tagged();
+    let dict = |entries: Vec<(&str, Object)>| {
+        let mut d = pdfcraft_cos::Dict::new();
+        for (k, v) in entries {
+            d.set(k.as_bytes().to_vec(), v);
+        }
+        Object::Dict(d)
+    };
+    let objr = || dict(vec![("Type", Object::name("OBJR")), ("Obj", Object::Ref(r(14)))]);
+    let indirect = doc.add(dict(vec![("Type", Object::name("StructElem")), ("S", Object::name("Link")), ("P", Object::Ref(r(8))), ("K", objr())]));
+    let inline = dict(vec![("S", Object::name("Link")), ("K", objr())]);
+    doc.update_dict(r(8), |d| d.set(b"K".to_vec(), Object::Array(vec![Object::Ref(r(9)), Object::Ref(r(10)), inline, Object::Ref(indirect)]))).unwrap();
+    assert!(structure_problems(&doc).iter().any(|p| p.contains("is owned by 2 tags")), "{:?}", structure_problems(&doc));
+}
+
 /// The same page as [`tagged`] with an unusual layout: a parent tree with intermediate nodes,
 /// limits and indirect arrays, stored directly in the root; the root's /K a lone reference;
 /// marked-content references instead of integers; and no /ParentTreeNextKey.

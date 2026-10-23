@@ -88,11 +88,11 @@ pub fn structure_problems(doc: &Document) -> Vec<String> {
         }
     }
     for (object, owners) in &tree.object_owners {
-        let Some(Owner::Element(tag)) = owners.first() else { continue };
         if owners.len() > 1 {
             out.push(format!("object {object} is owned by {} tags", owners.len()));
             continue;
         }
+        let Some(Owner::Element(tag)) = owners.first() else { continue };
         match key_of(*object, b"StructParent") {
             None => out.push(format!("object {object} has a tag but no /StructParent")),
             Some(key) => match pt.get(&copy, key) {

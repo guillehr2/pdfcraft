@@ -74,6 +74,10 @@ impl State {
     fn sync(&mut self, doc: &Document) {
         let now = Some((doc.id, doc.edit_generation()));
         if self.owner != now {
+            // An edit keeps the page; another document's pages are not the one selected.
+            if self.owner.map(|(id, _)| id) != Some(doc.id) {
+                self.page = None;
+            }
             self.owner = now;
             self.units.clear();
             self.annotation = None;
