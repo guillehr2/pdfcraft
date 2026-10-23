@@ -339,8 +339,11 @@ impl Automation {
         let out = self.resolve(a.str("out")?, true)?;
         let request = self.signing.get(&doc_id).ok_or_else(|| bad("this document has no prepared signature: call sign_prepare first"))?;
         let signed = self.session.complete_signing(request, &signature).map_err(sign_error)?;
+        // The request goes once the file is written: if `out` can't be written, the same
+        // signature can be sent again with another `out`.
+        let saved = self.save_signed(a, doc_id, &out, signed)?;
         self.signing.remove(&doc_id);
-        self.save_signed(a, doc_id, &out, signed)
+        Ok(saved)
     }
 
     /// Write the signed file to `out` and show it as the document's saved state (signing always
@@ -554,9 +557,13 @@ trailer << /Root 1 0 R >>
         ok(&mut a, "page_rotate", json!({ "doc": doc, "degrees": 90 }));
         assert!(refused(finish(&mut a, &right)).contains("changed while it was being signed"));
         assert!(!dir.join("signed.pdf").exists());
-        // Prepared again, it signs.
+        // Prepared again, it signs. An `out` that can't be written (a folder) leaves the request,
+        // so the same signature signs to another `out`.
         let prepared = ok(&mut a, "sign_prepare", json!({ "doc": doc, "certificate": "rsa.crt.pem" }));
-        ok(&mut a, "sign_finish", json!({ "doc": doc, "signature": hex(&outside_sign(&id("rsa-aes.p12").key, &prepared)), "out": "signed.pdf" }));
+        let signature = hex(&outside_sign(&id("rsa-aes.p12").key, &prepared));
+        std::fs::create_dir_all(dir.join("a-folder")).unwrap();
+        assert!(a.call("sign_finish", &json!({ "doc": doc, "signature": signature, "out": "a-folder" })).is_err());
+        ok(&mut a, "sign_finish", json!({ "doc": doc, "signature": signature, "out": "signed.pdf" }));
         assert!(dir.join("signed.pdf").exists());
         // A file with no certificate in it.
         std::fs::write(dir.join("empty.pem"), b"no certificate here").unwrap();
