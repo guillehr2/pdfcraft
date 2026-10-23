@@ -52,7 +52,7 @@ licence = "MIT OR Apache-2.0"
 licence_file = "LICENSE-MIT"
 kind = "translation"
 usage = "Czech UI strings, compiled in by crates/ui-egui/src/i18n/mod.rs"
-sha256 = "f2f95d1f25c4962b7ad9df90132685e3f094c6d09f9638413f42248667341153"
+sha256 = "61c47be161489ba0776f60036db24e57200fa7275e331f738078e91e50aaa02c"
 
 [[asset]]
 path = "crates/ui-egui/src/i18n/pt-br.tsv"
