@@ -2472,7 +2472,7 @@ milestone = "M7"
 status = "shipped"
 commands = ["edit.watermark"]
 tools = ["doc_watermark"]
-evidence = ["crates/engine/src/tests.rs::backgrounds_and_watermarks_from_files", "crates/engine/src/mark_picture.rs::an_image_keeps_its_size_colours_and_transparency", "crates/engine/src/mark_picture.rs::a_pdf_page_is_transparent_where_it_draws_nothing_and_upright", "crates/ui-egui/tests/ui_group/marks.rs::a_mark_from_a_file_previews_its_picture_where_ok_puts_it"]
+evidence = ["crates/engine/src/tests.rs::backgrounds_and_watermarks_from_files", "crates/engine/src/mark_picture.rs::an_image_keeps_its_size_colours_and_transparency", "crates/engine/src/mark_picture.rs::a_pdf_page_is_transparent_where_it_draws_nothing_and_upright", "crates/ui-egui/tests/it/marks.rs::a_mark_from_a_file_previews_its_picture_where_ok_puts_it"]
 notes = "an image or a page of a PDF, scaled relative to the page, rotated, with opacity, behind or on top; the dialog previews the picture itself over the page's own thumbnail where OK puts it (scale, turn, offset, opacity), brought in and rendered off the UI thread the way OK brings it in, with its own transparency; behind the page it multiplies the page's picture on a grid of 2-pixel cells (exact over white and black content, darker than the result over coloured content); a frame and the file name until it arrives, or when the file can't be drawn"
 
 [[feature]]
