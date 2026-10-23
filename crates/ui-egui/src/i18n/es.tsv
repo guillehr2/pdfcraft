@@ -2859,7 +2859,6 @@ certificate	SHA-256 digest	Huella SHA-256
 	Cut and stack needs Two-sided: Off. Print single-sided sheets.	Cortar y apilar necesita «A doble cara: Desactivado». Imprime hojas a una cara.
 	Error	Error
 	Warning	Advertencia
-	Information	Información
 	Success	Correcto
 #
 # Asking for something, and choosing it.
