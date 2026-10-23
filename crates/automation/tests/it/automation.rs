@@ -7917,16 +7917,18 @@ fn output_preview_through_tools() {
     assert_eq!((*width, *height), (50, 50));
     let mut reader = png::Decoder::new(std::io::Cursor::new(data)).read_info().unwrap();
     let mut pixels = vec![0; reader.output_buffer_size().unwrap()];
-    reader.next_frame(&mut pixels).unwrap();
-    let px = |x: usize, y: usize| pixels[(y * 50 + x) * 4];
+    let info = reader.next_frame(&mut pixels).unwrap();
+    // An opaque raster is written as RGB, one with transparency as RGBA.
+    let step = info.color_type.samples();
+    let px = |x: usize, y: usize| pixels[(y * 50 + x) * step];
     assert_eq!((px(25, 25), px(2, 2)), (128, 255), "Gold at 50% in the middle, none elsewhere");
     let out = a.call("print_output_preview", &json!({ "doc": doc, "page": 1, "image": "composite", "mark_tac": true, "tac_limit": 250 })).unwrap();
     let Content::Png { data, .. } = &out[1] else { panic!("expected a PNG") };
     let mut reader = png::Decoder::new(std::io::Cursor::new(data)).read_info().unwrap();
     let mut pixels = vec![0; reader.output_buffer_size().unwrap()];
-    reader.next_frame(&mut pixels).unwrap();
-    assert_eq!(pixels[(10 * 100 + 10) * 4..][..3], [0, 220, 0], "the rich black is above 250%");
-    assert_ne!(pixels[(50 * 100 + 50) * 4..][..3], [0, 220, 0]);
+    let step = reader.next_frame(&mut pixels).unwrap().color_type.samples();
+    assert_eq!(pixels[(10 * 100 + 10) * step..][..3], [0, 220, 0], "the rich black is above 250%");
+    assert_ne!(pixels[(50 * 100 + 50) * step..][..3], [0, 220, 0]);
 
     assert_eq!(ok(&mut a, "doc_info", json!({ "doc": doc })), before, "the preview doesn't change the document");
     for bad in [
