@@ -1399,7 +1399,7 @@ impl Document {
         if at >= FIRST_KB || find(data, b"/Linearized", at, data.len().min(FIRST_KB)).is_none() {
             return Linearization::No;
         }
-        let Ok((_, Object::Dict(d))) = parse_indirect_shared(data, at, &|_| None) else { return Linearization::No };
+        let Ok((_, Object::Dict(d))) = parse_indirect_shared(data, at, &|_| None, &Default::default()) else { return Linearization::No };
         if d.get(b"Linearized").and_then(Object::as_f64).is_none() {
             return Linearization::No;
         }
@@ -1428,13 +1428,14 @@ impl Document {
         let starts_there =
             data.get(hint_at).is_some_and(u8::is_ascii_digit) && (hint_at == 0 || data.get(hint_at - 1).is_some_and(|b| crate::is_whitespace(*b)));
         let ends_there = data.get(..hint_end).is_some_and(|d| d.trim_ascii_end().ends_with(b"endobj"));
-        let hint_is_stream = starts_there && ends_there && matches!(parse_indirect_shared(data, hint_at, &|_| None), Ok((_, Object::Stream(_))));
+        let hint_is_stream =
+            starts_there && ends_there && matches!(parse_indirect_shared(data, hint_at, &|_| None, &Default::default()), Ok((_, Object::Stream(_))));
         // /T: the white-space in front of the main table's entry for object 0, or the main
         // cross-reference stream (Table F.1; qpdf points at the white-space in front of it).
         let main_section_there = usize::try_from(main_entry).ok().is_some_and(|t| {
             data.get(t).is_some_and(|b| crate::is_whitespace(*b))
                 || ((t == 0 || data.get(t - 1).is_some_and(|b| crate::is_whitespace(*b)))
-                    && matches!(parse_indirect_shared(data, t, &|_| None), Ok((_, Object::Stream(s))) if s.dict.name(b"Type") == Some(b"XRef")))
+                    && matches!(parse_indirect_shared(data, t, &|_| None, &Default::default()), Ok((_, Object::Stream(s))) if s.dict.name(b"Type") == Some(b"XRef")))
         });
         if !hint_is_stream || !main_section_there {
             return Linearization::Stale(StaleReason::Parameters);
@@ -1508,7 +1509,7 @@ mod tests {
         let long = first_xref_stream(7, &trailer, &rows(0xFF_FFFF), 3, u64::MAX).unwrap();
         assert_eq!(short.len(), long.len());
         assert!(long.ends_with(b"endobj\nstartxref\n0\n%%EOF\n"));
-        let (r, object) = parse_indirect_shared(&Arc::new(long), 0, &|_| None).unwrap();
+        let (r, object) = parse_indirect_shared(&Arc::new(long), 0, &|_| None, &Default::default()).unwrap();
         assert_eq!(r.num, 7);
         let Object::Stream(s) = object else { panic!("a stream") };
         assert_eq!(s.dict.name(b"Type"), Some(b"XRef".as_slice()));

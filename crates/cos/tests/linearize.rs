@@ -729,7 +729,7 @@ fn a_page_tree_node_whose_kids_array_is_indirect_is_a_node() {
         .obj("<< /Type /Page /Parent 2 0 R /Contents 6 0 R >>")
         .stream("", b"0 0 m 100 100 l S")
         .build();
-    let bytes = linearize(input).bytes;
+    let bytes = linearize(input, false).bytes;
     let (_, lin) = parameters(&bytes);
     assert_eq!(int(&lin, b"N"), 2);
     let doc = Document::open(Arc::new(bytes.clone())).unwrap();
