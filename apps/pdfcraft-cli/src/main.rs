@@ -219,8 +219,16 @@ fn validate(args: &[String]) -> Result<(), CliError> {
     report.findings.retain(|f| f.severity <= least);
     let mut json = pdfcraft_automation::structure_report_json(&report);
     json["file"] = serde_json::json!(path);
-    stdout_line(format_args!("{json}"))?;
-    if report.is_valid() { Ok(()) } else { Err(format!("validate: {} error(s) against the Arlington PDF Model", report.errors).into()) }
+    let failed = (!report.is_valid()).then(|| format!("validate: {} error(s) against the Arlington PDF Model", report.errors));
+    match stdout_line(format_args!("{json}")) {
+        // A reader that stops early (`| head`) doesn't make a file with errors pass.
+        Err(CliError::Stdout(e)) if e.kind() == std::io::ErrorKind::BrokenPipe && failed.is_some() => {}
+        written => written?,
+    }
+    match failed {
+        Some(m) => Err(m.into()),
+        None => Ok(()),
+    }
 }
 
 fn flag<'a>(args: &'a [String], name: &str) -> Option<&'a str> {
