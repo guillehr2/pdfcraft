@@ -16,4 +16,5 @@ pdfcraft-model = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
+pdfcraft-render = { workspace = true }
 pdfcraft-testkit = { workspace = true }

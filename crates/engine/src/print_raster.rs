@@ -1,29 +1,32 @@
 //! Print as image (Acrobat's Advanced Print Setup ▸ Print As Image): every page
 //! sent to the printer as a picture at a chosen resolution, for printers that skip text,
 //! shading or transparency. The pages are rendered the way the viewer shows them (reading
-//! colours off, the print's own colours), made into an image-only document, and that document
-//! is imposed on the paper like any other. The print is no longer searchable text.
+//! colours off, the print's own colours) with only what the print's content choice keeps, made
+//! into an image-only document, and that document is imposed on the paper like any other. The
+//! print is no longer searchable text.
 //!
 //! [`pictures`] renders only some pages, the same way, for the pages that must not reach the
 //! Windows print component as they are (Type 3 text, #2684); the others stay vector.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
-use pdfcraft_cos::{Dict, Object, Stream};
+use pdfcraft_cos::{Dict, Object, SaveOptions, Stream, write_incremental};
 use pdfcraft_create::ImageResolution;
-use pdfcraft_print::Raster;
+use pdfcraft_print::{Content, Raster};
 use pdfcraft_render::{PRINT_TAG, PageRenderer, RenderRequest};
 
-use crate::Document;
 use crate::export::{ExportSource, encode_png};
+use crate::{Document, guard};
 
 /// `doc`'s pages `pages` (0-based, each once, in the order given) as an image-only PDF, one
-/// page per entry, the size of the source page as displayed. Pages too large for the renderer
-/// at `raster.dpi` render at the largest resolution it allows.
-pub fn rasterize(doc: &Document, pages: &[usize], raster: &Raster, hide_comments: bool) -> Result<Vec<u8>, String> {
+/// page per entry, the size of the source page as displayed, drawing what `content` prints.
+/// Pages too large for the renderer at `raster.dpi` render at the largest resolution it allows.
+pub fn rasterize(doc: &Document, pages: &[usize], raster: &Raster, content: Content) -> Result<Vec<u8>, String> {
     let dpi = raster.dpi.clamp(72.0, 600.0);
-    let src = doc.export_source();
-    let mut renderer = renderer(&src, hide_comments);
+    let mut src = doc.export_source();
+    src.bytes = printed(&src, content)?;
+    let mut renderer = renderer(&src);
     let mut images: Vec<(String, Vec<u8>)> = Vec::with_capacity(pages.len());
     let mut used: Option<f64> = None;
     for &page in pages {
@@ -38,7 +41,8 @@ pub fn rasterize(doc: &Document, pages: &[usize], raster: &Raster, hide_comments
     pdfcraft_cos::write_full(&doc, &pdfcraft_cos::SaveOptions::default()).map_err(|e| e.to_string())
 }
 
-/// `doc`'s pages `pages` (0-based) rendered as [`rasterize`] renders them, each as an image
+/// Pages `pages` (0-based) of `printed`, the print copy already reduced to what prints
+/// (`pdfcraft_print::keep_printed`), rendered as [`rasterize`] renders them, each as an image
 /// XObject of the page as displayed, keyed by page, for `pdfcraft_print::impose_with_pictures`.
 /// Each picture is compressed as soon as it is drawn, so only one page's pixels are held at once.
 pub fn pictures(doc: &Document, printed: &pdfcraft_cos::Document, pages: &[usize], raster: &Raster) -> Result<HashMap<usize, Stream>, String> {
@@ -46,11 +50,9 @@ pub fn pictures(doc: &Document, printed: &pdfcraft_cos::Document, pages: &[usize
         return Ok(HashMap::new());
     }
     let dpi = raster.dpi.clamp(72.0, 600.0);
-    // Drawn from the copy that prints what the vector print would (`pdfcraft_print::printed_copy`):
-    // its annotations are the ones that print, so none is hidden here.
     let mut src = doc.export_source();
-    src.bytes = std::sync::Arc::new(pdfcraft_cos::write_full(printed, &pdfcraft_cos::SaveOptions::default()).map_err(|e| e.to_string())?);
-    let mut renderer = renderer(&src, false);
+    src.bytes = Arc::new(pdfcraft_cos::write_full(printed, &SaveOptions::default()).map_err(|e| e.to_string())?);
+    let mut renderer = renderer(&src);
     let mut out = HashMap::with_capacity(pages.len());
     for &page in pages {
         if out.contains_key(&page) {
@@ -81,9 +83,20 @@ struct Picture {
     dpi: f64,
 }
 
-fn renderer(src: &ExportSource, hide_comments: bool) -> PageRenderer {
+/// `src`'s bytes reduced to what prints under `content` (`pdfcraft_print::keep_printed`).
+fn printed(src: &ExportSource, content: Content) -> Result<Arc<Vec<u8>>, String> {
+    let bytes = guard(|| -> Result<Vec<u8>, String> {
+        let mut cos = pdfcraft_cos::Document::open_with_password(src.bytes.clone(), src.config.password.as_deref()).map_err(|e| e.to_string())?;
+        pdfcraft_print::keep_printed(&mut cos, content);
+        write_incremental(&cos, &SaveOptions::default()).map_err(|e| e.to_string())
+    })??;
+    Ok(Arc::new(bytes))
+}
+
+fn renderer(src: &ExportSource) -> PageRenderer {
     let mut config = src.config.clone();
-    config.hide_comments = hide_comments;
+    // The bytes hold only what prints, so the viewer's own comment hiding plays no part.
+    config.hide_comments = false;
     PageRenderer::new(src.bytes.clone(), config)
 }
 
