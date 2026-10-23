@@ -7863,8 +7863,8 @@ area = "K"
 tier = "P1"
 milestone = "M11"
 status = "partial"
-commands = ["standards.pdfa"]
-tools = ["pdfa_convert", "pdfa_verify"]
+commands = ["standards.pdfa", "standards.pdfx"]
+tools = ["pdfa_convert", "pdfa_verify", "pdfx_convert", "output_conditions"]
 evidence = ["crates/preflight/src/tests.rs::convert_fixes_all_but_fonts", "crates/automation/tests/it/automation.rs::pdfa_through_tools", "crates/ui-egui/tests/it/compare.rs::pdfa_dialog_verifies_and_converts", "crates/preflight/src/output.rs::reads_a_printer_profile_and_the_characterization_it_names", "crates/preflight/src/output.rs::registry_names_are_found_whatever_their_case_and_spacing", "crates/preflight/src/conform/tests.rs::pdfx1a_names_fogra39_without_a_profile_and_needs_one_for_rgb", "crates/preflight/src/conform/tests.rs::pdfa_gives_a_cmyk_document_the_chosen_profile_as_its_output_intent", "crates/automation/src/standards.rs::printing_conditions_are_named_and_profiles_stay_inside_the_root", "crates/ui-egui/src/standards_ui.rs::save_as_pdfx_converts_saves_and_verifies_the_file_written"]
 notes = "Save as PDF/X and Save as PDF/A set the output intent: an ICC profile file the user chooses (Choose ICC profile…, icc), embedded and named by the user, the ICC registry characterization its description names, or its description; or for PDF/X-1a and -3 a characterization in the ICC registry named without a profile (FOGRA39, FOGRA51, FOGRA52, FOGRA47, CGATS TR 006, CGATS TR 001, JC200103, IFRA26; output_conditions lists them). PDF/A otherwise gets the generated sRGB profile. No printer profile ships with PdfCraft. Not yet: editing the output intents of a document outside a conversion, the full ICC registry list, PDF/X-5's external profile references."
 
