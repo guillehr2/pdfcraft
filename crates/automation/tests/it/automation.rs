@@ -7945,7 +7945,7 @@ fn output_preview_through_tools() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-#[path = "../../render/tests/support/synthetic_icc.rs"]
+#[path = "../../../render/tests/support/synthetic_icc.rs"]
 mod synthetic_icc;
 
 #[test]
