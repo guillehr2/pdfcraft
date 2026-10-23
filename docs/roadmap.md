@@ -206,7 +206,7 @@ total matches the parity estimate.
 | 4 | Pro conversion: OCR languages and clean-up, Office export/import (M10) | gaps 7, 8 | 95–175 |
 | 5 | Standards: Preflight, PDF/A all parts, PDF/UA, PDF/X (M11) | gap 9 | 65–115 |
 | 6 | Signatures for institutions: PKCS #11, timestamp servers, online LTV (M9) | gap 10 | 40–70 |
-| 7 | Accessibility tagging (M12) | gap 11 | 40–70 |
+| 7 | Accessibility tagging (M12) | gap 11 | 25–50 |
 | 8 | 1.0 polish: performance, RTL, languages, keyboard-only (M14) | gaps 13, 14 | 55–95 |
 
 Beta needs ranks 1–7 in substance (≈ 400–700 h; see [target-app-parity.md](target-app-parity.md#stage)).

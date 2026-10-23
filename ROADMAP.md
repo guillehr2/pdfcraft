@@ -88,7 +88,7 @@ and add a line to the [progress log](#progress-log); when a gap closes, remove i
 
 | | Value | Kind |
 |---|---|---|
-| **Feature breadth** | **≈ 67%** tier-weighted (56.9% unweighted: 423 shipped + 74 partial of 808; P0 94.2%) | measured, `parity/acrobat-features.toml` |
+| **Feature breadth** | **≈ 67%** tier-weighted (57.9% unweighted: 427 shipped + 81 partial of 808; P0 94.2%) | measured, `parity/acrobat-features.toml` |
 | Feature breadth, mainstream practitioner | ≈ 70% tier-weighted (63.2% unweighted; P0 95.3%) | measured ([split](docs/target-app-parity.md#mainstream-practitioner-vs-full-acrobat-pro)) |
 | **Ready for real work**, full Acrobat Pro | **≈ 50%** (45–53%) | estimated, weighted sum over [dimensions](#by-dimension) |
 | **Ready for real work**, mainstream practitioner | **≈ 55%** (50–60%) | estimated ([split](docs/target-app-parity.md#mainstream-practitioner-vs-full-acrobat-pro)) |
@@ -146,7 +146,7 @@ Hours are calibrated as in [Effort and calibration](docs/target-app-parity.md#ef
 | J Create and export | 39.7% | 25% | 55–100 |
 | K Optimize and standards | 34.5% | 20% | 65–115 |
 | L Print | 39.7% | 35% | 30–55 |
-| M Accessibility | 63.1% | 30% | 40–70 |
+| M Accessibility | 75.4% | 40% | 25–50 |
 | N Automation, preferences, misc | 30.0% | 35% | 25–45 |
 
 What's strong and missing in each: [target-app-parity.md](docs/target-app-parity.md#by-feature-area).
@@ -188,7 +188,7 @@ Ranked; detail and the full milestone table in [docs/roadmap.md](docs/roadmap.md
 | 4 | OCR languages and Office export/import (M10) | 95–175 |
 | 5 | Preflight and PDF/A/X/UA (M11) | 65–115 |
 | 6 | Signatures for institutions: PKCS #11, timestamp servers, online LTV (M9) | 40–70 |
-| 7 | Accessibility tagging (M12) | 40–70 |
+| 7 | Accessibility tagging (M12) | 25–50 |
 | 8 | 1.0 polish: performance, right-to-left, missing languages, keyboard-only (M14) | 55–95 |
 
 ## Progress log
