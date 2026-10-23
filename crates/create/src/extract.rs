@@ -135,13 +135,15 @@ fn image(doc: &Document, s: &Stream) -> Result<(&'static str, Vec<u8>), String> 
     // A stencil mask (`ImageMask true`) has no /SMask or /Mask of its own (8.9.6.2).
     let mut alpha = if mask { None } else { soft_mask(doc, s, w, h).or_else(|| stencil_mask(doc, s, w, h)) };
     let key = if mask { None } else { colour_key(doc, s) };
-    // Keep the existing JPEG and stencil-mask Decode handling separate from lossless colour images.
-    let inverted = (jpeg || mask)
-        && s.dict
-            .get(b"Decode")
-            .map(|d| doc.resolve(d))
-            .and_then(|d| d.as_array().map(|a| a.first().and_then(Object::as_f64) > a.get(1).and_then(Object::as_f64)))
-            .unwrap_or(false);
+    // A Decode array whose first interval runs backwards: inversion. JPEGs, stencil masks and Lab
+    // images take only that from it; other lossless images map each component (`decode`).
+    let first_inverted = s
+        .dict
+        .get(b"Decode")
+        .map(|d| doc.resolve(d))
+        .and_then(|d| d.as_array().map(|a| a.first().and_then(Object::as_f64) > a.get(1).and_then(Object::as_f64)))
+        .unwrap_or(false);
+    let inverted = (jpeg || mask) && first_inverted;
     let space = if mask { Ok(Space::Gray) } else { space(doc, s.dict.get(b"ColorSpace")) };
     // Lab JPEGs aren't decoded yet: a decoder may read their samples as YCbCr. Nor is a Lab
     // image whose /Decode export can't apply yet: it would show the default range's colours.
@@ -175,14 +177,17 @@ fn image(doc: &Document, s: &Stream) -> Result<(&'static str, Vec<u8>), String> 
         (unpack(&data, w, h, space.components(), bpc).ok_or("the image data is shorter than its size says")?, bpc)
     };
     let n = space.components();
-    let decode = if jpeg || mask { None } else { decode(doc, s, n) };
+    // Lab samples become L*, a* and b* in `to_srgb`, not fractions: their /Decode is the default or
+    // that default inverted (`lab_decode_supported`), so the inversion is all there is to apply.
+    let lab = matches!(space, Space::Lab(_));
+    let decode = if jpeg || mask || lab { None } else { decode(doc, s, n) };
     if alpha.is_none() {
         alpha = key.and_then(|k| keyed_alpha(&samples, n, bpc, &k));
     }
     if unchanged && alpha.is_none() {
         return as_is();
     }
-    let invert = inverted ^ mask; // a stencil mask paints its 0 samples
+    let invert = (inverted || (lab && first_inverted)) ^ mask; // a stencil mask paints its 0 samples
     // `unpack` keeps only the high byte at 16 bits, so Decode uses an effective maximum of 255 too.
     let max = (1u32 << bpc.min(8)) - 1;
     // 8-bit samples in the image's colour space, converted to sRGB below; an indexed image's
