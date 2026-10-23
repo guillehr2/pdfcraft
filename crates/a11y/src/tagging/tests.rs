@@ -455,7 +455,8 @@ fn an_object_two_tags_own_is_reported_whatever_tag_comes_first() {
     let objr = || dict(vec![("Type", Object::name("OBJR")), ("Obj", Object::Ref(r(14)))]);
     let indirect = doc.add(dict(vec![("Type", Object::name("StructElem")), ("S", Object::name("Link")), ("P", Object::Ref(r(8))), ("K", objr())]));
     let inline = dict(vec![("S", Object::name("Link")), ("K", objr())]);
-    doc.update_dict(r(8), |d| d.set(b"K".to_vec(), Object::Array(vec![Object::Ref(r(9)), Object::Ref(r(10)), inline, Object::Ref(indirect)]))).unwrap();
+    doc.update_dict(r(8), |d| d.set(b"K".to_vec(), Object::Array(vec![Object::Ref(r(9)), Object::Ref(r(10)), inline, Object::Ref(indirect)])))
+        .unwrap();
     assert!(structure_problems(&doc).iter().any(|p| p.contains("is owned by 2 tags")), "{:?}", structure_problems(&doc));
 }
 
