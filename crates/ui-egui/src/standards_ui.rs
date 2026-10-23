@@ -599,7 +599,7 @@ mod tests {
         let doc = pdfcraft_cos::Document::open(std::sync::Arc::new(bytes)).unwrap();
         assert_eq!(pdfx::verify(&doc, pdfx::Level::X1a2003), Vec::new());
         // Another level: the file was saved and verified as PDF/X-1a, so the dialog stops saying so.
-        h.get_by_label("PDF/X-1a:2003").click();
+        h.get_by_value("PDF/X-1a:2003").click();
         h.run_steps(2);
         h.get_by_label("PDF/X-4").click();
         h.run_steps(2);

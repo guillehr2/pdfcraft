@@ -2050,21 +2050,25 @@ key	Space	Mezerník
 	A colour space's ICC profile can't be used to convert its colour	Profil ICC barevného prostoru nelze použít k převodu jeho barvy
 	A colour space is nested too deeply to convert	Barevný prostor je vnořený příliš hluboko na převod
 	The spot colour {} has an alternate that can't be converted to CMYK yet	Přímá barva {} má alternativu, kterou zatím nelze převést do CMYK
-	The tint transform of the spot colour {} can't be read or evaluated	Převod odstínu přímé barvy {} nelze přečíst ani vyhodnotit
-	The tint transform of the spot colour {} can't be resampled into CMYK exactly	Převod odstínu přímé barvy {} nelze přesně převzorkovat do CMYK
 	A pattern over RGB or device-independent colour can't be converted to CMYK yet	Vzorek přes barvu RGB nebo nezávislou na zařízení zatím nelze převést do CMYK
-	A {} colour space's parameters can't be read	Parametry barevného prostoru {} nelze přečíst
+	{} colour can't be converted to CMYK yet	Barvu {} zatím nelze převést do CMYK
 	A content stream can't be read, so its colour can't be converted	Proud obsahu nelze přečíst, takže jeho barvu nelze převést
 	A colour operator's operands don't match its colour space	Operandy barevného operátoru neodpovídají jeho barevnému prostoru
 	A content stream is drawn with different resources in different places, so its colour can't be converted	Proud obsahu se na různých místech kreslí s různými prostředky, takže jeho barvu nelze převést
+	A shading in RGB or device-independent colour can't be converted to CMYK yet	Stínování v barvě RGB nebo nezávislé na zařízení zatím nelze převést do CMYK
+	A picture with other than 8 bits per component can't be converted to CMYK yet	Obrázek s jiným počtem bitů na složku než 8 zatím nelze převést do CMYK
+	A picture with a decode array or a colour-key mask can't be converted to CMYK yet	Obrázek s polem dekódování nebo maskou barevného klíče zatím nelze převést do CMYK
+	A picture's data can't be read, so it can't be converted to CMYK	Data obrázku nelze přečíst, takže ho nelze převést do CMYK
+	A JPEG picture in CMYK can't be converted yet	Obrázek JPEG v CMYK zatím nelze převést
+	An indexed colour space's table is too short to convert	Tabulka indexovaného barevného prostoru je na převod příliš krátká
+	The tint transform of the spot colour {} can't be read or evaluated	Převod odstínu přímé barvy {} nelze přečíst ani vyhodnotit
+	The tint transform of the spot colour {} can't be resampled into CMYK exactly	Převod odstínu přímé barvy {} nelze přesně převzorkovat do CMYK
+	A {} colour space's parameters can't be read	Parametry barevného prostoru {} nelze přečíst
 	A shading's colour function can't be read or evaluated	Barevnou funkci stínování nelze přečíst ani vyhodnotit
 	A shading's colour function can't be resampled into CMYK exactly	Barevnou funkci stínování nelze přesně převzorkovat do CMYK
 	A shading's data can't be read, so it can't be converted to CMYK	Data stínování nelze přečíst, takže ho nelze převést do CMYK
 	A mesh shading's colours change too sharply between its corners to convert to CMYK exactly	Barvy síťového stínování se mezi rohy mění příliš prudce na přesný převod do CMYK
 	A picture with a colour-key mask can't be converted to CMYK yet	Obrázek s maskou barevného klíče zatím nelze převést do CMYK
-	A picture's data can't be read, so it can't be converted to CMYK	Data obrázku nelze přečíst, takže ho nelze převést do CMYK
-	A JPEG picture in CMYK can't be converted yet	Obrázek JPEG v CMYK zatím nelze převést
-	An indexed colour space's table is too short to convert	Tabulka indexovaného barevného prostoru je na převod příliš krátká
 	Select Icon	Vybrat ikonu
 	Choose images	Vyberte obrázky
 	{dpi} pixels/inch	{dpi} pixelů/palec
