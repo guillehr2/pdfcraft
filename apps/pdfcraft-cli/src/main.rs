@@ -198,6 +198,11 @@ fn audit(args: &[String]) -> Result<(), CliError> {
 /// `validate`: the `structure_validate` report for one file, failing when it has errors.
 fn validate(args: &[String]) -> Result<(), CliError> {
     validate_options("validate", args, VALIDATE_OPTIONS)?;
+    // An option at the end with no value would otherwise read as not given: no password, or
+    // every severity.
+    if let Some(spec) = args.last().and_then(|last| VALIDATE_OPTIONS.iter().find(|spec| spec.name == last)) {
+        return Err(format!("validate: {} needs a value", spec.name).into());
+    }
     let path = *positional(args).first().ok_or("validate: missing file")?;
     let least = match flag(args, "--severity").unwrap_or("info") {
         "error" => pdfcraft_engine::structure::Severity::Error,

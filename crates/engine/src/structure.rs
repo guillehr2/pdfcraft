@@ -39,9 +39,10 @@ impl Source for CosSource<'_> {
 
     fn get(&self, r: Ref) -> Option<Object> {
         // An object number the cross-reference table doesn't hold (or marks free) is no object,
-        // unless an unsaved edit made it.
+        // unless an unsaved edit made it; nor is one of another generation than the reference's
+        // (ISO 32000-2 §7.3.10: such a reference is to the null object).
         let exists = self.doc.is_edited(r.num) || matches!(self.doc.xref_entry(r.num), Some(XrefEntry::InFile { .. } | XrefEntry::InStream { .. }));
-        if !exists {
+        if !exists || self.doc.generation(r.num) != r.generation {
             return None;
         }
         self.doc.try_get(r.num).ok().map(|o| convert(&o, 0))
@@ -178,5 +179,20 @@ mod tests {
         let report = validate(bytes);
         assert!(report.findings.iter().any(|f| f.rule == Rule::MissingObject && f.key == "Info"));
         assert!(report.findings.iter().any(|f| f.rule == Rule::Required && f.key == "Resources" && f.page == Some(0)));
+    }
+
+    /// `4 1 R` when object 4 is of generation 0 names no object, whatever object 4 holds.
+    #[test]
+    fn a_reference_of_another_generation_names_no_object() {
+        let objects = [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 9 9] /Resources << >> >>",
+            "<< /Title (Report) >>",
+        ];
+        let info = |r: &str| validate(pdf("1.4", &objects, &format!("<< /Size 5 /Root 1 0 R /Info {r} >>")));
+        let missing = |report: &Report| report.findings.iter().any(|f| f.rule == Rule::MissingObject && f.key == "Info");
+        assert!(!missing(&info("4 0 R")));
+        assert!(missing(&info("4 1 R")));
     }
 }

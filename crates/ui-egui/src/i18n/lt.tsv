@@ -1381,6 +1381,7 @@
 	Validate structure	Tikrinti struktūrą
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	Patikrinta objektų: {objects} pagal Arlington PDF Model, skirtą PDF {version}.
 	No errors: the structure follows the Arlington PDF Model.	Klaidų nėra: struktūra atitinka Arlington PDF Model.
+	No errors in the rules that were evaluated.	Įvertintose taisyklėse klaidų nėra.
 	Errors	Klaidos
 	Not evaluated: {list}	Neįvertinta: {list}
 	Only the first {n} of each kind are listed.	Rodomi tik pirmieji {n} kiekvienos rūšies.

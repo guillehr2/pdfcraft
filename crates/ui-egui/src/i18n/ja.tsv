@@ -220,6 +220,7 @@
 	Validate structure	構造を検証
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	{objects} 個のオブジェクトを PDF {version} の Arlington PDF Model に照らして検査しました。
 	No errors: the structure follows the Arlington PDF Model.	エラーはありません。構造は Arlington PDF Model に従っています。
+	No errors in the rules that were evaluated.	評価できた規則にはエラーはありません。
 	Errors	エラー
 	Information	情報
 	Not evaluated: {list}	未評価: {list}

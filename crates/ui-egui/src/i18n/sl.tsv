@@ -428,6 +428,7 @@
 	Validate structure	Preveri strukturo
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	Preverjenih objektov: {objects}, glede na Arlington PDF Model za PDF {version}.
 	No errors: the structure follows the Arlington PDF Model.	Brez napak: struktura ustreza modelu Arlington PDF Model.
+	No errors in the rules that were evaluated.	V ovrednotenih pravilih ni napak.
 	Errors	Napake
 	Information	Informacije
 	Not evaluated: {list}	Ni ovrednoteno: {list}

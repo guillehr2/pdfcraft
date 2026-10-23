@@ -337,6 +337,7 @@ key	Space	Mezerník
 	Validate structure	Ověřit strukturu
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	Zkontrolováno {objects} objektů podle modelu Arlington PDF Model pro PDF {version}.
 	No errors: the structure follows the Arlington PDF Model.	Žádné chyby: struktura odpovídá modelu Arlington PDF Model.
+	No errors in the rules that were evaluated.	V posouzených pravidlech nejsou žádné chyby.
 	Errors	Chyby
 	Information	Informace
 	Not evaluated: {list}	Nevyhodnoceno: {list}

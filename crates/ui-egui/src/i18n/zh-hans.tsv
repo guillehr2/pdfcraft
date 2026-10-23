@@ -1169,6 +1169,7 @@
 	Validate structure	验证结构
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	已按 PDF {version} 的 Arlington PDF Model 检查了 {objects} 个对象。
 	No errors: the structure follows the Arlington PDF Model.	没有错误：结构符合 Arlington PDF Model。
+	No errors in the rules that were evaluated.	已评估的规则中没有错误。
 	Errors	错误
 	Information	信息
 	Not evaluated: {list}	未评估：{list}

@@ -71,6 +71,12 @@ fn validate_fails_on_errors_and_agrees_with_the_tool() {
     assert_eq!(errors_only["warnings"], cli["warnings"]);
     let out = Command::new(BIN).args(["validate", "--severity", "loud"]).arg(dir.join("broken.pdf")).output().unwrap();
     assert!(!out.status.success() && out.stdout.is_empty());
+    // An option left without its value fails, on a valid file too, instead of falling back.
+    for option in ["--severity", "--password"] {
+        let out = Command::new(BIN).arg("validate").arg(dir.join("good.pdf")).arg(option).output().unwrap();
+        assert!(!out.status.success() && out.stdout.is_empty(), "{option}");
+        assert!(String::from_utf8_lossy(&out.stderr).contains(&format!("{option} needs a value")), "{}", String::from_utf8_lossy(&out.stderr));
+    }
 
     // The tool reports the same.
     let steps = serde_json::json!([

@@ -197,6 +197,7 @@ comment menu	Edit	సవరించు
 	Validate structure	నిర్మాణాన్ని ధృవీకరించు
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	PDF {version} కోసం Arlington PDF Model ప్రకారం {objects} ఆబ్జెక్ట్‌లను తనిఖీ చేశాము.
 	No errors: the structure follows the Arlington PDF Model.	లోపాలు లేవు: నిర్మాణం Arlington PDF Model ను అనుసరిస్తోంది.
+	No errors in the rules that were evaluated.	మూల్యాంకనం చేసిన నియమాలలో లోపాలు లేవు.
 	Errors	లోపాలు
 	Information	సమాచారం
 	Not evaluated: {list}	మూల్యాంకనం చేయనివి: {list}

@@ -1106,6 +1106,7 @@
 	Validate structure	Validar estrutura
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	{objects} objetos verificados em relação ao Arlington PDF Model para PDF {version}.
 	No errors: the structure follows the Arlington PDF Model.	Nenhum erro: a estrutura segue o Arlington PDF Model.
+	No errors in the rules that were evaluated.	Nenhum erro nas regras avaliadas.
 	Errors	Erros
 	Information	Informações
 	Not evaluated: {list}	Não avaliado: {list}

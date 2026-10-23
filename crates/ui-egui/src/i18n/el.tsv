@@ -2160,6 +2160,7 @@
 	Validate structure	Επικύρωση δομής
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	Ελέγχθηκαν {objects} αντικείμενα με βάση το Arlington PDF Model για PDF {version}.
 	No errors: the structure follows the Arlington PDF Model.	Κανένα σφάλμα: η δομή ακολουθεί το Arlington PDF Model.
+	No errors in the rules that were evaluated.	Κανένα σφάλμα στους κανόνες που αξιολογήθηκαν.
 	Errors	Σφάλματα
 	Information	Πληροφορίες
 	Not evaluated: {list}	Δεν αξιολογήθηκαν: {list}

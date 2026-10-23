@@ -191,6 +191,7 @@
 	Validate structure	Szerkezet ellenőrzése
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	{objects} objektum ellenőrizve az Arlington PDF Model alapján (PDF {version}).
 	No errors: the structure follows the Arlington PDF Model.	Nincs hiba: a szerkezet követi az Arlington PDF Model előírásait.
+	No errors in the rules that were evaluated.	Nincs hiba a kiértékelt szabályokban.
 	Errors	Hibák
 	Information	Információ
 	Not evaluated: {list}	Nem kiértékelt: {list}

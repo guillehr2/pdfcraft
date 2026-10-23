@@ -8,12 +8,17 @@ use pdfcraft_ui_egui::{Dialog, PdfCraftApp};
 /// Two pages; the second has a link annotation whose highlighting mode (/H) isn't one of N, I,
 /// O or P.
 fn document() -> Vec<u8> {
+    with_link("<< /Type /Annot /Subtype /Link /Rect [10 10 50 30] /H /Glow /PdfCraftNote 1 >>")
+}
+
+/// Two pages; the second has the link annotation `link`.
+fn with_link(link: &str) -> Vec<u8> {
     let objects = [
         "<< /Type /Catalog /Pages 2 0 R >>",
         "<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>",
         "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Resources << >> >>",
         "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Resources << >> /Annots [5 0 R] >>",
-        "<< /Type /Annot /Subtype /Link /Rect [10 10 50 30] /H /Glow /PdfCraftNote 1 >>",
+        link,
     ];
     let mut pdf = b"%PDF-1.7\n".to_vec();
     let mut offsets = Vec::new();
@@ -31,7 +36,10 @@ fn document() -> Vec<u8> {
 }
 
 fn harness(language: &'static str) -> Harness<'static, PdfCraftApp> {
-    let doc = document();
+    harness_of(language, document())
+}
+
+fn harness_of(language: &'static str, doc: Vec<u8>) -> Harness<'static, PdfCraftApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
         let mut app = PdfCraftApp::new();
         app.set_option("language", language).unwrap();
@@ -70,6 +78,20 @@ fn validate_structure_lists_findings_and_turns_to_their_page() {
     h.get_by_label("Close").click();
     h.run_steps(2);
     assert_eq!(h.state().dialog, None);
+}
+
+/// Without errors, the dialog says the structure follows the model only if every rule was
+/// evaluated: the model has rules this validator can't evaluate (`InNameTree`), and those are left
+/// open.
+#[test]
+fn without_errors_the_dialog_claims_only_the_rules_it_evaluated() {
+    let mut h = harness_of("en", with_link("<< /Type /Annot /Subtype /Link /Rect [10 10 50 30] /H /I >>"));
+    assert!(h.state_mut().execute("standards.structure"));
+    h.run_steps(2);
+    h.get_by_label("Errors (0)");
+    assert!(!h.state().structure_report().unwrap().not_checked.is_empty());
+    h.get_by_label("No errors in the rules that were evaluated.");
+    assert!(h.query_by_label("No errors: the structure follows the Arlington PDF Model.").is_none());
 }
 
 /// The findings read in the interface's language, with the document's own names left as they are.

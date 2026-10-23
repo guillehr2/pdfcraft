@@ -218,6 +218,7 @@
 	Validate structure	Перевірити структуру
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	Перевірено об’єктів: {objects} за моделлю Arlington PDF Model для PDF {version}.
 	No errors: the structure follows the Arlington PDF Model.	Помилок немає: структура відповідає моделі Arlington PDF Model.
+	No errors in the rules that were evaluated.	В оцінених правилах помилок немає.
 	Errors	Помилки
 	Information	Відомості
 	Not evaluated: {list}	Не оцінено: {list}

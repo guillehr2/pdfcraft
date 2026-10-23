@@ -181,6 +181,7 @@
 	Validate structure	Құрылымды тексеру
 	Checked {objects} objects against the Arlington PDF Model for PDF {version}.	PDF {version} үшін Arlington PDF Model бойынша {objects} нысан тексерілді.
 	No errors: the structure follows the Arlington PDF Model.	Қате жоқ: құрылым Arlington PDF Model-ге сай.
+	No errors in the rules that were evaluated.	Бағаланған ережелерде қате жоқ.
 	Errors	Қателер
 	Information	Ақпарат
 	Not evaluated: {list}	Бағаланбаған: {list}
