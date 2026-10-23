@@ -388,7 +388,10 @@ fn text_takes_its_language_from_marked_content_too() {
     // §14.9.2.1), a language on the TD's own property list, and a Span around the TD's sequence.
     let th_spanned = "/TH << /MCID 2 >> BDC /Span << /Lang (en-US) >> BDC BT /F1 12 Tf 20 100 Td (A) Tj ET EMC EMC";
     assert_eq!(without_language(&with_content(th_spanned, td)), ["TD"]);
-    assert_eq!(without_language(&with_content(th_spanned, "/TD << /MCID 3 /Lang (de) >> BDC BT /F1 12 Tf 20 80 Td (1) Tj ET EMC")), Vec::<String>::new());
+    assert_eq!(
+        without_language(&with_content(th_spanned, "/TD << /MCID 3 /Lang (de) >> BDC BT /F1 12 Tf 20 80 Td (1) Tj ET EMC")),
+        Vec::<String>::new()
+    );
     let td_around = "/Span << /Lang (de) >> BDC /TD << /MCID 3 >> BDC BT /F1 12 Tf 20 80 Td (1) Tj ET EMC EMC";
     assert_eq!(without_language(&with_content(th_spanned, td_around)), Vec::<String>::new());
     // Covering part of the text is not enough.
@@ -400,12 +403,8 @@ fn text_takes_its_language_from_marked_content_too() {
     // No language on any tag, but on every text's marked content: nothing is missing.
     let mut bare = with_content(th_spanned, td_around);
     bare[DOCUMENT] = ua()[DOCUMENT].clone();
-    bare[CONTENT] = stream(
-        &PAGE_OPS
-            .replace(th, th_spanned)
-            .replace(td, td_around)
-            .replace("/H1 << /MCID 0 >> BDC", "/H1 << /MCID 0 /Lang (en) >> BDC"),
-    );
+    bare[CONTENT] =
+        stream(&PAGE_OPS.replace(th, th_spanned).replace(td, td_around).replace("/H1 << /MCID 0 >> BDC", "/H1 << /MCID 0 /Lang (en) >> BDC"));
     let r = verified(&bare);
     assert_eq!(outcome(&r, "11-001"), Outcome::Passed);
     // The figure's alternate text still has none.
@@ -434,7 +433,11 @@ fn a_language_must_be_a_language_tag() {
         1,
     );
     let r = verified(&objs);
-    assert!(messages(&r, "11-001").contains(&"TD element on page 1: its language (Lang) isn't a language tag".to_string()), "{:?}", messages(&r, "11-001"));
+    assert!(
+        messages(&r, "11-001").contains(&"TD element on page 1: its language (Lang) isn't a language tag".to_string()),
+        "{:?}",
+        messages(&r, "11-001")
+    );
 }
 
 #[test]
@@ -461,8 +464,11 @@ fn a_file_attachment_names_its_file_in_f_and_uf() {
     let attached = |fs: &str| {
         let mut objs = ua();
         objs[PAGE] = objs[PAGE].replace("/Annots [10 0 R 11 0 R]", "/Annots [10 0 R 11 0 R 15 0 R]");
-        objs[DOCUMENT] = objs[DOCUMENT].replace("/Obj 11 0 R >> >> ]", "/Obj 11 0 R >> >> << /S /Annot /Pg 3 0 R /K << /Type /OBJR /Obj 15 0 R >> >> ]");
-        objs.push(format!("<< /Type /Annot /Subtype /FileAttachment /Rect [0 0 9 9] /Contents (Data) /StructParent 3 /FS << /Type /Filespec {fs} >> >>"));
+        objs[DOCUMENT] =
+            objs[DOCUMENT].replace("/Obj 11 0 R >> >> ]", "/Obj 11 0 R >> >> << /S /Annot /Pg 3 0 R /K << /Type /OBJR /Obj 15 0 R >> >> ]");
+        objs.push(format!(
+            "<< /Type /Annot /Subtype /FileAttachment /Rect [0 0 9 9] /Contents (Data) /StructParent 3 /FS << /Type /Filespec {fs} >> >>"
+        ));
         failed(&verified(&objs))
     };
     assert!(attached("/F (a.csv) /UF (a.csv)").is_empty());
@@ -480,7 +486,9 @@ fn tables_and_lists_hold_only_the_kids_iso_32000_allows() {
         // A Span in a row.
         format!("<< /S /Table /K [ << /S /TR /K [ {td} << /S /Span >> ] >> ] >>"),
         // A Span in a row group, and a second THead.
-        format!("<< /S /Table /K [ << /S /THead /K [ << /S /TR /K {td} >> << /S /Span >> ] >> << /S /THead >> << /S /TBody /K << /S /TR /K {td} >> >> ] >>"),
+        format!(
+            "<< /S /Table /K [ << /S /THead /K [ << /S /TR /K {td} >> << /S /Span >> ] >> << /S /THead >> << /S /TBody /K << /S /TR /K {td} >> >> ] >>"
+        ),
         // Rows directly in the table, and in a TBody.
         format!("<< /S /Table /K [ << /S /TR /K {td} >> << /S /TBody /K << /S /TR /K {td} >> >> ] >>"),
         // A Caption between rows, and a P in the table.

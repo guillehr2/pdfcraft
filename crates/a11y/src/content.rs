@@ -162,7 +162,12 @@ impl Walk<'_> {
                         self.scan.mcid_text.entry(self.page).or_default().entry(m).or_default();
                     }
                     let lang = text_of(self.doc, &list, b"Lang").is_some_and(|l| is_language_tag(&l));
-                    stack.push(Within { tagged: within.tagged || mcid, artifact: within.artifact || artifact, mcid: page_mcid, lang: within.lang || lang });
+                    stack.push(Within {
+                        tagged: within.tagged || mcid,
+                        artifact: within.artifact || artifact,
+                        mcid: page_mcid,
+                        lang: within.lang || lang,
+                    });
                 }
                 b"EMC" => {
                     stack.pop();
@@ -293,7 +298,9 @@ pub(crate) fn text_of(doc: &Document, d: &Dict, key: &[u8]) -> Option<String> {
 /// names: a primary subtag of 1 to 8 letters, then any number of subtags of 1 to 8 letters or
 /// digits, joined by hyphens. Every BCP 47 tag, which PDF 2.0 names, has this form too.
 pub(crate) fn is_language_tag(s: &str) -> bool {
-    let subtag = |p: &str, letters_only: bool| (1..=8).contains(&p.len()) && p.bytes().all(|b| if letters_only { b.is_ascii_alphabetic() } else { b.is_ascii_alphanumeric() });
+    let subtag = |p: &str, letters_only: bool| {
+        (1..=8).contains(&p.len()) && p.bytes().all(|b| if letters_only { b.is_ascii_alphabetic() } else { b.is_ascii_alphanumeric() })
+    };
     let mut parts = s.split('-');
     parts.next().is_some_and(|p| subtag(p, true)) && parts.all(|p| subtag(p, false))
 }
