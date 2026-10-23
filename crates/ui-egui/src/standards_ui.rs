@@ -54,7 +54,16 @@ fn declared_line(ui: &mut egui::Ui, app: &PdfCraftApp, t: &Tokens) {
     standards.extend(declared.pdfua.map(|p| format!("PDF/UA-{p}")));
     standards.extend(declared.pdfx);
     let shown = if standards.is_empty() { tl!("none").to_string() } else { standards.join(", ") };
-    ui.label(crate::i18n::fmt(tl!("Declared conformance: {shown}"), &[("shown", &shown)]));
+    let removal = pdfcraft_engine::Edit::RemoveStandardId { standard: pdfcraft_engine::Standard::PdfA };
+    let mut remove = false;
+    ui.horizontal(|ui| {
+        ui.label(crate::i18n::fmt(tl!("Declared conformance: {shown}"), &[("shown", &shown)]));
+        // Worded as Edit ▸ Undo will name it.
+        remove = declared.pdfa.is_some() && widgets::pill_button(ui, &crate::i18n::edit_label(&removal.label()), false).clicked();
+    });
+    if remove && app.apply_edit(removal) {
+        app.pdfa.issues = None;
+    }
     if !declared.output_intents.is_empty() {
         ui.label(
             egui::RichText::new(crate::i18n::fmt(tl!("Output intent: {list}"), &[("list", &declared.output_intents.join(", "))])).color(t.text_muted),
