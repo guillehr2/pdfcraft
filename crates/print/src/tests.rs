@@ -900,7 +900,9 @@ fn the_type3_check_reads_shared_resources_once_within_a_budget() {
     for i in 0..21 {
         let resources = if i == 20 { "<< /Font << /T3 4 0 R >> >>".to_string() } else { "7 0 R".to_string() };
         assert_eq!(pdf.next_obj(), 8 + 2 * i);
-        pdf = pdf.obj(format!("<< /Type /Page /Parent 2 0 R /Contents {} 0 R /Resources {resources} >>", 9 + 2 * i)).stream("", "BT /F1 9 Tf (Hi) Tj ET");
+        pdf = pdf
+            .obj(format!("<< /Type /Page /Parent 2 0 R /Contents {} 0 R /Resources {resources} >>", 9 + 2 * i))
+            .stream("", "BT /F1 9 Tf (Hi) Tj ET");
     }
     let doc = open(&pdf);
     let all: Vec<usize> = (0..21).collect();

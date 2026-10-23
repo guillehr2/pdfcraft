@@ -72,7 +72,6 @@ struct Walk<'a> {
 }
 
 impl<'a> Walk<'a> {
-
     /// One more read; `false` once the budget is spent.
     fn spend(&mut self) -> bool {
         match self.left.checked_sub(1) {

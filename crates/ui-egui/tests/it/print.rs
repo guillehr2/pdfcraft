@@ -872,6 +872,7 @@ fn restored_paper_keeps_preview_and_saved_sheet_dimensions() {
     let size = pages[0].display_size(&printed);
     assert!((size.0 - a4.0).abs() < 0.01 && (size.1 - a4.1).abs() < 0.01, "saved sheet: {size:?}");
     std::fs::remove_file(out).unwrap();
+}
 
 /// Two pages: the first draws a glyph, a space and a glyph with a Chrome-style Type 3 font
 /// (#2684), the second Helvetica text.
