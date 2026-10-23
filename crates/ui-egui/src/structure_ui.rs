@@ -466,12 +466,13 @@ mod tests {
     #[test]
     fn the_window_goes_on_while_the_check_runs() {
         let mut h = harness();
-        let begun = Instant::now();
         let held = hold(&mut h);
+        // The check runs on its own thread: it is still under way once `hold` returns, where a
+        // check on the UI thread would have finished (or given up) first.
+        assert!(h.state().structure_checking().is_some(), "the check runs while frames go on");
         // The worker counts its first objects once its thread runs, which on a slow runner takes
         // more than a frame or two: wait for the count, not for a number of frames.
         until(&mut h, "the first count", |app| app.structure_checking() == Some(42));
-        assert!(begun.elapsed() < Duration::from_secs(5), "frames waited for the check: {:?}", begun.elapsed());
         h.get_by_label("Checking the structure… 42 objects so far");
         assert_eq!(h.state().structure_checking(), Some(42));
         assert!(h.query_by_label("Check again").is_none(), "Cancel, not Check again, while it runs");
