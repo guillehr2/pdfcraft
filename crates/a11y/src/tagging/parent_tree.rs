@@ -122,6 +122,12 @@ impl ParentTree {
         }
     }
 
+    /// Hand out keys past `held` only: a key a page or an annotation holds, which the tree may
+    /// not list.
+    pub fn reserve(&mut self, held: i64) {
+        self.next_key = self.next_key.max(held.saturating_add(1));
+    }
+
     /// Hand out a fresh key.
     pub fn allocate(&mut self) -> Result<i64, String> {
         let key = self.next_key;

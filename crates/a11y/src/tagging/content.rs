@@ -631,6 +631,9 @@ impl PageContent {
         (first..=end).all(|i| self.depth_before(i) >= start) && self.depth_before(end) == start
     }
 
+    /// Whether run `s..=e` can grow to `last`, taking in the span `first..=last` after it. A run
+    /// is balanced and holds whole text objects already, so only what it would gain is checked:
+    /// each join costs the operators it adds, not the whole run again.
     fn joinable(&self, s: usize, e: usize, first: usize, last: usize, chosen: &HashSet<usize>, atom_at: &HashMap<usize, usize>) -> bool {
         if self.text_object.get(s) != self.text_object.get(first) {
             return false;
@@ -644,14 +647,15 @@ impl PageContent {
                 return false;
             }
         }
-        // A text object between the two must be inside the run whole.
+        // A text object in what the run gains must be inside it whole.
         if self.text_object.get(s).copied().flatten().is_none()
-            && (s..=last)
+            && (e.saturating_add(1)..=last)
                 .any(|i| self.text_object.get(i).copied().flatten().is_some_and(|bt| bt < s || self.text_end.get(&bt).is_none_or(|&et| et > last)))
         {
             return false;
         }
-        self.balanced(s, last)
+        // `s..=e` is balanced, so `s..=last` is when what it gains is.
+        self.balanced(e.saturating_add(1), last)
     }
 
     /// Bytes inserted before an operator.

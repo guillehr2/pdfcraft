@@ -42,7 +42,11 @@ fn untagged() -> Vec<u8> {
 
 /// Document › [P 8, Sect 9 › [P 10, Figure 11]].
 fn tagged() -> Vec<u8> {
-    pdf(&[
+    pdf(&tagged_objects())
+}
+
+fn tagged_objects() -> Vec<String> {
+    vec![
         "<< /Type /Catalog /Pages 2 0 R /MarkInfo << /Marked true >> /StructTreeRoot 6 0 R >>".into(),
         "<< /Type /Pages /Kids [3 0 R] /Count 1 >>".into(),
         "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Contents 4 0 R /StructParents 0 /Resources << /Font << /F1 5 0 R >> >> >>".into(),
@@ -59,7 +63,7 @@ fn tagged() -> Vec<u8> {
         "<< /Type /StructElem /S /P /P 9 0 R /K 1 >>".into(),
         "<< /Type /StructElem /S /Figure /P 9 0 R /K 2 >>".into(),
         "<< /Nums [0 [8 0 R 10 0 R 11 0 R]] >>".into(),
-    ])
+    ]
 }
 
 fn harness(name: &'static str, bytes: Vec<u8>) -> Harness<'static, PdfCraftApp> {
@@ -217,6 +221,34 @@ fn the_tags_panel_highlights_content_and_a_click_on_the_page_selects_its_tag() {
     let p = at(&h, 80.0, 90.0);
     click(&mut h, p);
     assert_eq!(h.state().selected_tag(), Some((8, 0)));
+}
+
+#[test]
+fn a_click_that_selects_a_tag_does_not_follow_the_link_over_it() {
+    let mut objects = tagged_objects();
+    objects[2] = objects[2].replace("/StructParents 0", "/StructParents 0 /Annots [13 0 R]");
+    objects.push("<< /Type /Annot /Subtype /Link /Rect [15 240 120 280] /Border [0 0 0] /A << /S /URI /URI (https://example.com/) >> >>".into());
+    let mut h = harness("linked.pdf", pdf(&objects));
+    assert!(h.state_mut().execute("a11y.tags"));
+    h.run_steps(3);
+    h.get_by_label("Highlight content");
+    let p = at(&h, 30.0, 255.0);
+    click(&mut h, p);
+    assert_eq!(h.state().selected_tag(), Some((8, 0)));
+    assert!(h.state().pending_link.is_none(), "the link isn't followed");
+}
+
+#[test]
+fn the_reading_order_selection_starts_over_in_another_document() {
+    let mut h = harness("report.pdf", untagged());
+    assert!(h.state_mut().execute("a11y.reading_order"));
+    h.run_steps(3);
+    let p = at(&h, 60.0, 204.0);
+    click(&mut h, p);
+    assert_eq!(h.state().reading_order_selection(), (Some(0), vec![1]));
+    h.state_mut().open_bytes("other.pdf", None, tagged()).unwrap();
+    h.run_steps(3);
+    assert_eq!(h.state().reading_order_selection(), (None, Vec::new()));
 }
 
 #[test]

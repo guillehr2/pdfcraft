@@ -3149,6 +3149,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 let tags = tags_state.tags(doc);
                 tags_state.select(doc.id, &tags, tag);
             }
+            let mut on_tag = false;
             if tags_open
                 && tool == QuickTool::Select
                 && tags_state.highlighting()
@@ -3161,6 +3162,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 if let Some(tag) = doc.tag_at(i, f64::from(ux), f64::from(uy)) {
                     let tags = tags_state.tags(doc);
                     tags_state.select(doc.id, &tags, tag);
+                    on_tag = true;
                 }
             }
             if tool == QuickTool::Select
@@ -3175,6 +3177,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 || on_edit_text
                 || on_link
                 || on_reading
+                || on_tag
                 || on_content
                 || boxing
                 || on_field

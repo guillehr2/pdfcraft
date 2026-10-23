@@ -434,7 +434,27 @@ fn ensure_structure(doc: &mut Document, create: bool) -> Result<ObjRef, TaggingE
 fn parent_tree(doc: &Document, root: ObjRef) -> Result<ParentTree, TaggingError> {
     let dict = doc.get(root).as_dict().cloned().ok_or(TaggingError::Untagged)?;
     let pt = dict.get(b"ParentTree").and_then(Object::as_ref).ok_or_else(|| pt_error("it is missing".into()))?;
-    Ok(ParentTree::read(doc, pt, dict.get(b"ParentTreeNextKey").and_then(Object::as_int)))
+    let mut tree = ParentTree::read(doc, pt, dict.get(b"ParentTreeNextKey").and_then(Object::as_int));
+    // A tree that lists less than the pages and annotations hold (and has no
+    // /ParentTreeNextKey) would hand out their keys again, and two holders would share an entry.
+    if let Some(held) = greatest_held_key(doc) {
+        tree.reserve(held);
+    }
+    Ok(tree)
+}
+
+/// The greatest parent tree key a page (/StructParents) or an annotation on one (/StructParent)
+/// holds.
+fn greatest_held_key(doc: &Document) -> Option<i64> {
+    let mut greatest = None;
+    for p in pdfcraft_model::pages(doc) {
+        greatest = greatest.max(struct_parents(doc, p.obj));
+        let annots = p.dict.get(b"Annots").map(|a| doc.resolve(a)).and_then(|a| a.as_array().cloned()).unwrap_or_default();
+        for a in &annots {
+            greatest = greatest.max(doc.resolve(a).as_dict().and_then(|d| d.get(b"StructParent").and_then(Object::as_int)));
+        }
+    }
+    greatest
 }
 
 fn save_next_key(doc: &mut Document, root: ObjRef, pt: &ParentTree) -> Result<(), TaggingError> {

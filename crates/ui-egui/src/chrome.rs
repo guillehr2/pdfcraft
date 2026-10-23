@@ -610,7 +610,12 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     (RightPanel::Compare, tl!("Compare")),
                 ] {
                     if ui.add(widgets::radio(app.right == Some(p), tl!(label))).clicked() {
-                        app.choose_right_panel(Some(p));
+                        // The Reading Order panel works with its tool: its command turns both on.
+                        if p == RightPanel::ReadingOrder && app.right != Some(p) {
+                            app.run_command("a11y.reading_order");
+                        } else {
+                            app.choose_right_panel(Some(p));
+                        }
                     }
                 }
             });

@@ -619,8 +619,10 @@ impl Document {
     }
 
     /// Consistency problems of the tag tree (parent tree, `/P`, MCIDs, role map); empty when sound.
+    /// A check that fails unexpectedly says so, rather than passing for a sound tree.
     pub fn structure_problems(&self) -> Vec<String> {
-        self.editor.as_ref().and_then(|e| guard(|| a11y::structure_problems(&e.cos)).ok()).unwrap_or_default()
+        let Some(e) = self.editor.as_ref() else { return Vec::new() };
+        guard(|| a11y::structure_problems(&e.cos)).unwrap_or_else(|m| vec![format!("checking the tags failed unexpectedly ({m})")])
     }
 
     /// The edit that fixes `rule`, for the rules with an automatic fix: the document language
