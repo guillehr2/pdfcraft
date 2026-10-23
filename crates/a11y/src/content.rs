@@ -325,7 +325,9 @@ pub(crate) fn text_of(doc: &Document, d: &Dict, key: &[u8]) -> Option<String> {
 /// names: a primary subtag of 1 to 8 letters, then any number of subtags of 1 to 8 letters or
 /// digits, joined by hyphens. Every BCP 47 tag, which PDF 2.0 names, has this form too.
 pub(crate) fn is_language_tag(s: &str) -> bool {
-    let subtag = |p: &str, letters_only: bool| (1..=8).contains(&p.len()) && p.bytes().all(|b| if letters_only { b.is_ascii_alphabetic() } else { b.is_ascii_alphanumeric() });
+    let subtag = |p: &str, letters_only: bool| {
+        (1..=8).contains(&p.len()) && p.bytes().all(|b| if letters_only { b.is_ascii_alphabetic() } else { b.is_ascii_alphanumeric() })
+    };
     let mut parts = s.split('-');
     parts.next().is_some_and(|p| subtag(p, true)) && parts.all(|p| subtag(p, false))
 }

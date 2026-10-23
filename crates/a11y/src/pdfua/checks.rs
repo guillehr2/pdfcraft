@@ -240,7 +240,15 @@ fn pdf_version(doc: &Document, cat: &Dict) -> (u32, u32) {
 /// property list. `found` holds the tags without one; when no tag sets a language either, one
 /// finding says so instead of one per tag, if `unlabelled_text` (some text has no language from a
 /// property list either).
-fn language(doc: &Document, cat: &Dict, xmp: Option<&str>, unlabelled_text: bool, any_lang: bool, found: &BTreeMap<&'static str, Found>, c: &mut Collected) {
+fn language(
+    doc: &Document,
+    cat: &Dict,
+    xmp: Option<&str>,
+    unlabelled_text: bool,
+    any_lang: bool,
+    found: &BTreeMap<&'static str, Found>,
+    c: &mut Collected,
+) {
     if !any_lang {
         if unlabelled_text {
             c.add("11-001", Finding::plain(None, NO_LANGUAGE));
