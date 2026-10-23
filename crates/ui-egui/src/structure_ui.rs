@@ -290,7 +290,11 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> bool
                 // Only a check that evaluated every rule, over the whole document, can say the
                 // structure follows the model; the notes below say what wasn't evaluated.
                 let complete = report.not_checked.is_empty() && !report.stopped_early;
-                let said = if complete { tl!("No errors: the structure follows the Arlington PDF Model.") } else { tl!("No errors in the rules that were evaluated.") };
+                let said = if complete {
+                    tl!("No errors: the structure follows the Arlington PDF Model.")
+                } else {
+                    tl!("No errors in the rules that were evaluated.")
+                };
                 ui.label(egui::RichText::new(said).color(t.text_muted));
             }
             ui.add_space(6.0);

@@ -53,7 +53,13 @@ fn validate_fails_on_errors_and_agrees_with_the_tool() {
     let out = Command::new(BIN).arg("validate").arg(dir.join("broken.pdf")).output().unwrap();
     assert!(!out.status.success(), "errors must fail validate");
     // A reader that closes the pipe before the report is written doesn't turn that into a pass.
-    let mut child = Command::new(BIN).arg("validate").arg(dir.join("broken.pdf")).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::null()).spawn().unwrap();
+    let mut child = Command::new(BIN)
+        .arg("validate")
+        .arg(dir.join("broken.pdf"))
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .unwrap();
     drop(child.stdout.take());
     assert!(!child.wait().unwrap().success(), "a closed pipe must not make validate succeed");
     assert!(String::from_utf8_lossy(&out.stderr).contains("2 error(s)"), "{}", String::from_utf8_lossy(&out.stderr));
