@@ -25,7 +25,8 @@
 //!
 //! Device colour that content sets with operators is found by the PDF/A walk
 //! ([`uses_device_colour`](super::uses_device_colour)); the colour spaces that images, shadings
-//! and resource dictionaries define, with the bases and alternates under them, are read here.
+//! (including those of shading patterns) and resource dictionaries define, with the bases and
+//! alternates under them, are read here.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -835,8 +836,18 @@ struct Defaults {
     cmyk: bool,
 }
 
-/// The colour spaces the document defines: images' and shadings' own, and every space a resource
-/// dictionary lists (listed counts as used, whether or not content selects it).
+/// The colour space of the shading written into the shading pattern `p`. A shading of its own is
+/// an object, checked where it is however many patterns and lists name it.
+fn written_shading(p: &Dict) -> Option<&Object> {
+    match p.get(b"Shading") {
+        Some(Object::Dict(s)) if s.get(b"ShadingType").is_some() => s.get(b"ColorSpace"),
+        _ => None,
+    }
+}
+
+/// The colour spaces the document defines: images' and shadings' own, every space a resource
+/// dictionary lists, and the spaces of the shadings its `/Shading` and `/Pattern` lists hold
+/// (listed counts as used, whether or not content draws it with `sh` or selects it with `scn`).
 fn defined_spaces(doc: &Document, objs: &[(ObjRef, Arc<Object>)], pages: &[pdfcraft_model::Page]) -> (Vec<SpaceUse>, Defaults) {
     let page_of: HashMap<ObjRef, usize> = pages.iter().enumerate().map(|(i, p)| (p.obj, i)).collect();
     let mut uses = Vec::new();
@@ -851,10 +862,7 @@ fn defined_spaces(doc: &Document, objs: &[(ObjRef, Arc<Object>)], pages: &[pdfcr
             families(doc, cs, 0, &mut found);
         }
         // A pattern's shading, written into it.
-        if let Some(Object::Dict(shading)) = d.get(b"Shading")
-            && shading.get(b"ShadingType").is_some()
-            && let Some(cs) = shading.get(b"ColorSpace")
-        {
+        if let Some(cs) = written_shading(d) {
             families(doc, cs, 0, &mut found);
         }
         for holder in resource_holders(d).into_iter().flatten() {
@@ -878,6 +886,19 @@ fn defined_spaces(doc: &Document, objs: &[(ObjRef, Arc<Object>)], pages: &[pdfcr
                 for (_, shading) in list.iter() {
                     if let Object::Dict(shading) = shading
                         && let Some(cs) = shading.get(b"ColorSpace")
+                    {
+                        families(doc, cs, 0, &mut found);
+                    }
+                }
+            }
+            // Shading patterns written into a resource dictionary's /Pattern list, and the
+            // shadings written into them. A pattern of its own is an object, checked above.
+            if let Some(list) = holder.get(b"Pattern").map(|p| doc.resolve(p))
+                && let Some(list) = list.as_dict()
+            {
+                for (_, pattern) in list.iter() {
+                    if let Object::Dict(pattern) = pattern
+                        && let Some(cs) = written_shading(pattern)
                     {
                         families(doc, cs, 0, &mut found);
                     }

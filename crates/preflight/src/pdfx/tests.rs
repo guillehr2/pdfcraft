@@ -704,6 +704,123 @@ fn pdfx3_and_4_device_colour_matches_the_output_intent() {
     }
 }
 
+/// A shading pattern with an axial shading written into it, in `space` from `c0` to `c1`.
+fn shading_pattern(space: &str, c0: &str, c1: &str) -> String {
+    format!(
+        "<< /PatternType 2 /Shading << /ShadingType 2 /ColorSpace {space} /Coords [0 0 10 0] \
+         /Function << /FunctionType 2 /Domain [0 1] /C0 [{c0}] /C1 [{c1}] /N 1 >> >> >>"
+    )
+}
+
+const PAINT_P0: &str = "/Pattern cs /P0 scn 0 0 10 10 re f";
+
+#[test]
+fn pdfx1a_checks_the_shadings_of_shading_patterns() {
+    let not_allowed = "The {} colour space isn't allowed: PDF/X-1a allows only CMYK, gray and spot colour";
+    let rgb = shading_pattern("/DeviceRGB", "1 1 1", "1 0.5 0");
+    for level in [Level::X1a2001, Level::X1a2003] {
+        let with = |resources: String, content: &str, extra: Vec<Vec<u8>>| {
+            let mut f = Fixture::new(level);
+            f.resources = resources;
+            f.content = content.into();
+            f.extra = extra;
+            f
+        };
+        // Written into the page's /Pattern list, which `scn` selects from: on the page.
+        let found = only(&with(format!("/Pattern << /P0 {rgb} >>"), PAINT_P0, vec![]), "pdfx.colour", not_allowed);
+        assert_eq!((found.value.as_deref(), found.page, found.object), (Some("DeviceRGB"), Some(0), Some(3)));
+        // In a /Pattern list of its own, on the page that lists it.
+        let found = only(&with("/Pattern 11 0 R".into(), PAINT_P0, vec![format!("<< /P0 {rgb} >>").into_bytes()]), "pdfx.colour", not_allowed);
+        assert_eq!((found.page, found.object), (Some(0), Some(3)));
+        // In a form's resources, and in a tiling pattern's.
+        let form = stream(&format!("/Type /XObject /Subtype /Form /BBox [0 0 10 10] /Resources << /Pattern << /P0 {rgb} >> >>"), PAINT_P0.as_bytes());
+        let found = only(&with("/XObject << /Fm0 11 0 R >>".into(), "/Fm0 Do", vec![form]), "pdfx.colour", not_allowed);
+        assert_eq!((found.page, found.object), (None, Some(11)));
+        let tiling = stream(
+            &format!(
+                "/Type /Pattern /PatternType 1 /PaintType 1 /TilingType 1 /BBox [0 0 10 10] /XStep 10 /YStep 10 \
+                 /Resources << /Pattern << /P0 {rgb} >> >>"
+            ),
+            PAINT_P0.as_bytes(),
+        );
+        let found = only(&with("/Pattern << /T0 11 0 R >>".into(), "/Pattern cs /T0 scn 0 0 10 10 re f", vec![tiling]), "pdfx.colour", not_allowed);
+        assert_eq!((found.page, found.object), (None, Some(11)));
+        // A spot colour drawn in RGB where its ink is missing, and device-independent colour.
+        for (space, c0, c1, family) in [
+            ("[/Separation /Orange /DeviceRGB << /FunctionType 2 /Domain [0 1] /C0 [1 1 1] /C1 [1 0.5 0] /N 1 >>]", "0", "1", "DeviceRGB"),
+            ("[/Lab << /WhitePoint [0.9505 1 1.089] >>]", "100 0 0", "50 60 70", "Lab"),
+        ] {
+            let pattern = shading_pattern(space, c0, c1);
+            let found = only(&with(format!("/Pattern << /P0 {pattern} >>"), PAINT_P0, vec![]), "pdfx.colour", not_allowed);
+            assert_eq!(found.value.as_deref(), Some(family));
+        }
+        // CMYK, gray and spot colour over CMYK are fine.
+        for (space, c0, c1) in [
+            ("/DeviceCMYK", "0 0 0 0", "0 0.5 1 0"),
+            ("/DeviceGray", "0", "1"),
+            ("[/Separation /Orange /DeviceCMYK << /FunctionType 2 /Domain [0 1] /C0 [0 0 0 0] /C1 [0 0.5 1 0] /N 1 >>]", "0", "1"),
+        ] {
+            clean(&with(format!("/Pattern << /P0 {} >>", shading_pattern(space, c0, c1)), PAINT_P0, vec![]));
+        }
+    }
+}
+
+#[test]
+fn pdfx3_and_4_check_the_shadings_of_shading_patterns() {
+    let lab = shading_pattern("[/Lab << /WhitePoint [0.9505 1 1.089] >>]", "100 0 0", "50 60 70");
+    for level in [Level::X3_2002, Level::X3_2003, Level::X4] {
+        let mut f = Fixture::new(level);
+        f.content = PAINT_P0.into();
+        // RGB under a CMYK output intent.
+        f.resources = format!("/Pattern << /P0 {} >>", shading_pattern("/DeviceRGB", "1 1 1", "1 0.5 0"));
+        let found = only(&f, "pdfx.colour", "{} colour doesn't match the output intent's colour space");
+        assert_eq!((found.value.as_deref(), found.page, found.object), (Some("DeviceRGB"), Some(0), Some(3)));
+        // CMYK, and device-independent colour under the embedded profile, are fine.
+        f.resources = format!("/Pattern << /P0 {} >>", shading_pattern("/DeviceCMYK", "0 0 0 0", "0 0.5 1 0"));
+        clean(&f);
+        f.resources = format!("/Pattern << /P0 {lab} >>");
+        clean(&f);
+    }
+    // PDF/X-3 may name a registered characterization instead, unless it uses device-independent
+    // colour.
+    for level in [Level::X3_2002, Level::X3_2003] {
+        let mut f = Fixture::new(level);
+        f.intent = f.intent.replace("/DestOutputProfile 10 0 R", "");
+        f.content = PAINT_P0.into();
+        f.resources = format!("/Pattern << /P0 {lab} >>");
+        only(&f, "pdfx.output-intent", "Device-independent colour is used, so the output intent needs an embedded profile");
+    }
+}
+
+/// A shading of its own is found on itself, once, however many lists and patterns name it; a
+/// pattern written into a list twice is one finding for the page.
+#[test]
+fn a_shading_listed_in_several_places_is_found_once() {
+    let function = "<< /FunctionType 2 /Domain [0 1] /C0 [1 1 1] /C1 [1 0.5 0] /N 1 >>";
+    let shading = format!("<< /ShadingType 2 /ColorSpace /DeviceRGB /Coords [0 0 10 0] /Function {function} >>");
+    let rgb = shading_pattern("/DeviceRGB", "1 1 1", "1 0.5 0");
+    let paint = "/Pattern cs /P0 scn 0 0 10 10 re f /P1 scn 0 0 5 5 re f";
+    for level in Level::ALL {
+        let colour = |f: &Fixture| {
+            let found = findings(&f.doc(), level);
+            assert!(found.iter().all(|x| x.rule == "pdfx.colour"), "{}: {found:#?}", level.label());
+            found.into_iter().map(|x| (x.value, x.page, x.object)).collect::<Vec<_>>()
+        };
+        // Shading 11 drawn with `sh` and through a pattern written into the list, and pattern 12,
+        // an object of its own with a copy of that shading written into it: one finding, on 11.
+        let mut f = Fixture::new(level);
+        f.resources = "/Shading << /Sh0 11 0 R >> /Pattern << /P0 << /PatternType 2 /Shading 11 0 R >> /P1 12 0 R >>".into();
+        f.content = format!("/Sh0 sh {paint}");
+        f.extra = vec![shading.clone().into_bytes(), format!("<< /Type /Pattern /PatternType 2 /Shading {shading} >>").into_bytes()];
+        assert_eq!(colour(&f), vec![(Some("DeviceRGB".to_owned()), None, Some(11))], "{}", level.label());
+        // One pattern written into the list under two names.
+        let mut f = Fixture::new(level);
+        f.resources = format!("/Pattern << /P0 {rgb} /P1 {rgb} >>");
+        f.content = paint.into();
+        assert_eq!(colour(&f), vec![(Some("DeviceRGB".to_owned()), Some(0), Some(3))], "{}", level.label());
+    }
+}
+
 /// Every problem the rules can report is listed in `WORDINGS`, so an interface showing them in
 /// another language has something to translate.
 #[test]
@@ -738,7 +855,8 @@ fn damaged_documents_are_verified() {
         b"<< /Type /Catalog /Pages 2 0 R /OutputIntents 5 0 R /Metadata 7 0 R /Names << /JavaScript 3 >> >>".to_vec(),
         b"<< /Type /Pages /Kids [3 0 R 3 0 R 4 0 R] /Count 3 /MediaBox [0 0 1e308 -1e308] >>".to_vec(),
         b"<< /Type /Page /Parent 2 0 R /TrimBox [0 0 (a) 1] /BleedBox 9 0 R /Annots [null 3 0 R << /Subtype /Text /Rect [1 1] >>] \
-          /Resources << /ColorSpace << /A [/Indexed [/Indexed [/Indexed [/Indexed [/Indexed [/Indexed /DeviceRGB]]]]]] /B 6 0 R >> /ExtGState << /G 3 0 R >> >> >>"
+          /Resources << /ColorSpace << /A [/Indexed [/Indexed [/Indexed [/Indexed [/Indexed [/Indexed /DeviceRGB]]]]]] /B 6 0 R >> /ExtGState << /G 3 0 R >> \
+          /Pattern << /P 3 0 R /Q << /Shading << /ShadingType 2 /ColorSpace 3 0 R >> >> /R << /Shading 6 0 R >> /S [1] /T << /Shading << /ShadingType 2 >> >> >> >> >>"
             .to_vec(),
         b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 10 10] /ArtBox [0 0 10 10] /TrimBox [0 0 10 10] >>".to_vec(),
         b"[<< /S /GTS_PDFX /DestOutputProfile 8 0 R >> << /S /GTS_PDFX /DestOutputProfile 3 >> 42]".to_vec(),
