@@ -1694,6 +1694,13 @@
 	A form XObject with marked content (MCIDs) is drawn {n} times	Un XObject de formular cu conținut marcat (MCID) este desenat de {n} ori
 	Font {} on page {p} isn't embedded	Fontul {} de pe pagina {p} nu este încorporat
 	Font (unnamed) on page {p} isn't embedded	Fontul (fără nume) de pe pagina {p} nu este încorporat
+	The default optional content configuration (D) has no Name	Configurația implicită de conținut opțional (D) nu are Name
+	An optional content configuration has an AS entry	O configurație de conținut opțional are o intrare AS
+	Optional content configuration {n} has no Name	Configurația de conținut opțional {n} nu are Name
+	The XFA form requires dynamic rendering (dynamicRender)	Formularul XFA necesită randare dinamică (dynamicRender)
+	The file is encrypted but its encryption dictionary has no permissions (P)	Fișierul este criptat, dar dicționarul său de criptare nu are permisiuni (P)
+	The file has a reference XObject (Ref)	Fișierul are un XObject de referință (Ref)
+	Embedded file "{}": its file specification lacks F or UF	Fișierul încorporat „{}”: specificației sale de fișier îi lipsește F sau UF
 	Font {} on page {p}: its CMap and CIDFont name different registries (CIDSystemInfo Registry)	Fontul {} de pe pagina {p}: CMap-ul și CIDFont-ul său indică registre diferite (CIDSystemInfo Registry)
 	Font {} on page {p}: its CMap and CIDFont name different orderings (CIDSystemInfo Ordering)	Fontul {} de pe pagina {p}: CMap-ul și CIDFont-ul său indică ordonări diferite (CIDSystemInfo Ordering)
 	Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's	Fontul {} de pe pagina {p}: Supplement al CIDFont-ului său este mai mare decât cel al CMap-ului
@@ -1725,13 +1732,6 @@
 	Font {} on page {p}: its ToUnicode map maps code {code} to {u}	Fontul {} de pe pagina {p}: harta sa ToUnicode asociază codul {code} cu {u}
 	Font {} on page {p} draws the .notdef glyph (code {code})	Fontul {} de pe pagina {p} desenează gliful .notdef (codul {code})
 	Font {} on page {p}: code {code} in a formula can't be mapped to Unicode	Fontul {} de pe pagina {p}: codul {code} dintr-o formulă nu poate fi asociat cu Unicode
-	The default optional content configuration (D) has no Name	Configurația implicită de conținut opțional (D) nu are Name
-	An optional content configuration has an AS entry	O configurație de conținut opțional are o intrare AS
-	Optional content configuration {n} has no Name	Configurația de conținut opțional {n} nu are Name
-	The XFA form requires dynamic rendering (dynamicRender)	Formularul XFA necesită randare dinamică (dynamicRender)
-	The file is encrypted but its encryption dictionary has no permissions (P)	Fișierul este criptat, dar dicționarul său de criptare nu are permisiuni (P)
-	The file has a reference XObject (Ref)	Fișierul are un XObject de referință (Ref)
-	Embedded file "{}": its file specification lacks F or UF	Fișierul încorporat „{}”: specificației sale de fișier îi lipsește F sau UF
 	Inserted text	Text inserat
 	Key Agreement	Acord de chei
 	Key Encipherment	Cifrare chei

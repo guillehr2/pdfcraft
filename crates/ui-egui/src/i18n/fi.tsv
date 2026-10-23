@@ -2505,6 +2505,13 @@ animation effects	Off	Ei käytössä
 	A form XObject with marked content (MCIDs) is drawn {n} times	Lomake-XObject, jossa on merkittyä sisältöä (MCID), piirretään {n} kertaa
 	Font {} on page {p} isn't embedded	Sivun {p} fonttia {} ei ole upotettu
 	Font (unnamed) on page {p} isn't embedded	Sivun {p} nimetöntä fonttia ei ole upotettu
+	The default optional content configuration (D) has no Name	Valinnaisen sisällön oletusmäärityksellä (D) ei ole Namea
+	An optional content configuration has an AS entry	Valinnaisen sisällön määrityksessä on AS-avain
+	Optional content configuration {n} has no Name	Valinnaisen sisällön määrityksellä {n} ei ole Namea
+	The XFA form requires dynamic rendering (dynamicRender)	XFA-lomake vaatii dynaamisen hahmonnuksen (dynamicRender)
+	The file is encrypted but its encryption dictionary has no permissions (P)	Tiedosto on salattu, mutta sen salaussanakirjassa ei ole oikeuksia (P)
+	The file has a reference XObject (Ref)	Tiedostossa on viittaus-XObject (Ref)
+	Embedded file "{}": its file specification lacks F or UF	Upotettu tiedosto "{}": sen tiedostomäärityksestä puuttuu F tai UF
 	Font {} on page {p}: its CMap and CIDFont name different registries (CIDSystemInfo Registry)	Sivun {p} fontti {}: sen CMap ja CIDFont nimeävät eri rekisterit (CIDSystemInfo Registry)
 	Font {} on page {p}: its CMap and CIDFont name different orderings (CIDSystemInfo Ordering)	Sivun {p} fontti {}: sen CMap ja CIDFont nimeävät eri järjestykset (CIDSystemInfo Ordering)
 	Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's	Sivun {p} fontti {}: sen CIDFontin Supplement on suurempi kuin sen CMapin
@@ -2536,13 +2543,6 @@ animation effects	Off	Ei käytössä
 	Font {} on page {p}: its ToUnicode map maps code {code} to {u}	Sivun {p} fontti {}: sen ToUnicode-kartta yhdistää koodin {code} merkkiin {u}
 	Font {} on page {p} draws the .notdef glyph (code {code})	Sivun {p} fontti {} piirtää .notdef-glyfin (koodi {code})
 	Font {} on page {p}: code {code} in a formula can't be mapped to Unicode	Sivun {p} fontti {}: kaavan koodia {code} ei voi yhdistää Unicodeen
-	The default optional content configuration (D) has no Name	Valinnaisen sisällön oletusmäärityksellä (D) ei ole Namea
-	An optional content configuration has an AS entry	Valinnaisen sisällön määrityksessä on AS-avain
-	Optional content configuration {n} has no Name	Valinnaisen sisällön määrityksellä {n} ei ole Namea
-	The XFA form requires dynamic rendering (dynamicRender)	XFA-lomake vaatii dynaamisen hahmonnuksen (dynamicRender)
-	The file is encrypted but its encryption dictionary has no permissions (P)	Tiedosto on salattu, mutta sen salaussanakirjassa ei ole oikeuksia (P)
-	The file has a reference XObject (Ref)	Tiedostossa on viittaus-XObject (Ref)
-	Embedded file "{}": its file specification lacks F or UF	Upotettu tiedosto "{}": sen tiedostomäärityksestä puuttuu F tai UF
 	… and {n} more	… ja {n} muuta
 	Accessibility Report	Saavutettavuusraportti
 	Filename	Tiedostonimi

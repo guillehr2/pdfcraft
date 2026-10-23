@@ -2292,6 +2292,13 @@ action wizard	Start	Inicia
 	A form XObject with marked content (MCIDs) is drawn {n} times	Un XObject de formulari amb contingut marcat (MCID) es dibuixa {n} vegades
 	Font {} on page {p} isn't embedded	El tipus de lletra {} de la pàgina {p} no està incrustat
 	Font (unnamed) on page {p} isn't embedded	El tipus de lletra (sense nom) de la pàgina {p} no està incrustat
+	The default optional content configuration (D) has no Name	La configuració de contingut opcional per defecte (D) no té Name
+	An optional content configuration has an AS entry	Una configuració de contingut opcional té una entrada AS
+	Optional content configuration {n} has no Name	La configuració de contingut opcional {n} no té Name
+	The XFA form requires dynamic rendering (dynamicRender)	El formulari XFA requereix renderització dinàmica (dynamicRender)
+	The file is encrypted but its encryption dictionary has no permissions (P)	El fitxer està xifrat, però el seu diccionari de xifratge no té permisos (P)
+	The file has a reference XObject (Ref)	El fitxer té un XObject de referència (Ref)
+	Embedded file "{}": its file specification lacks F or UF	Fitxer incrustat "{}": a la seva especificació de fitxer li falta F o UF
 	Font {} on page {p}: its CMap and CIDFont name different registries (CIDSystemInfo Registry)	Tipus de lletra {} de la pàgina {p}: el seu CMap i el seu CIDFont indiquen registres diferents (CIDSystemInfo Registry)
 	Font {} on page {p}: its CMap and CIDFont name different orderings (CIDSystemInfo Ordering)	Tipus de lletra {} de la pàgina {p}: el seu CMap i el seu CIDFont indiquen ordenacions diferents (CIDSystemInfo Ordering)
 	Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's	Tipus de lletra {} de la pàgina {p}: el Supplement del seu CIDFont és superior al del seu CMap
@@ -2323,13 +2330,6 @@ action wizard	Start	Inicia
 	Font {} on page {p}: its ToUnicode map maps code {code} to {u}	Tipus de lletra {} de la pàgina {p}: el seu mapa ToUnicode assigna el codi {code} a {u}
 	Font {} on page {p} draws the .notdef glyph (code {code})	El tipus de lletra {} de la pàgina {p} dibuixa el glif .notdef (codi {code})
 	Font {} on page {p}: code {code} in a formula can't be mapped to Unicode	Tipus de lletra {} de la pàgina {p}: el codi {code} d'una fórmula no es pot assignar a Unicode
-	The default optional content configuration (D) has no Name	La configuració de contingut opcional per defecte (D) no té Name
-	An optional content configuration has an AS entry	Una configuració de contingut opcional té una entrada AS
-	Optional content configuration {n} has no Name	La configuració de contingut opcional {n} no té Name
-	The XFA form requires dynamic rendering (dynamicRender)	El formulari XFA requereix renderització dinàmica (dynamicRender)
-	The file is encrypted but its encryption dictionary has no permissions (P)	El fitxer està xifrat, però el seu diccionari de xifratge no té permisos (P)
-	The file has a reference XObject (Ref)	El fitxer té un XObject de referència (Ref)
-	Embedded file "{}": its file specification lacks F or UF	Fitxer incrustat "{}": a la seva especificació de fitxer li falta F o UF
 	… and {n} more	… i {n} més
 	Accessibility Report	Informe d'accessibilitat
 	Filename	Nom del fitxer
