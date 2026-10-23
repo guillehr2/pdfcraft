@@ -1442,7 +1442,7 @@ mod tests {
     #[test]
     fn spanish_covers_what_the_engine_says() {
         let es = Lang::from_code("es").expect("es registered");
-        let lists: [(&str, &[&str]); 11] = [
+        let lists: [(&str, &[&str]); 12] = [
             ("accessibility finding", pdfcraft_engine::a11y::WORDINGS),
             ("accessibility report", pdfcraft_engine::a11y::REPORT_WORDS),
             ("PDF/A problem", pdfcraft_engine::pdfa::WORDINGS),
@@ -1470,7 +1470,7 @@ mod tests {
     #[test]
     fn spanish_keeps_the_holes_in_what_the_engine_says() {
         let es = Lang::from_code("es").expect("es registered");
-        let lists: [&[&str]; 7] = [
+        let lists: [&[&str]; 8] = [
             pdfcraft_engine::a11y::WORDINGS,
             pdfcraft_engine::pdfa::WORDINGS,
             pdfcraft_engine::pdfx::WORDINGS,
