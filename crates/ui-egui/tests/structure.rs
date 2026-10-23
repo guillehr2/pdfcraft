@@ -104,7 +104,7 @@ fn validate_structure_lists_findings_and_turns_to_their_page() {
 fn without_errors_the_dialog_claims_only_the_rules_it_evaluated() {
     let mut h = harness_of("en", with_link("<< /Type /Annot /Subtype /Link /Rect [10 10 50 30] /H /I >>"));
     assert!(h.state_mut().execute("standards.structure"));
-    h.run_steps(2);
+    until_checked(&mut h);
     h.get_by_label("Errors (0)");
     assert!(!h.state().structure_report().unwrap().not_checked.is_empty());
     h.get_by_label("No errors in the rules that were evaluated.");
