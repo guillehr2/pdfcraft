@@ -1690,7 +1690,7 @@ theme	Appearance	Giao diện
 	Font (unnamed) on page {p} isn't embedded	Phông chữ (không tên) trên trang {p} chưa được nhúng
 	Font {} on page {p}: its CMap and CIDFont name different registries (CIDSystemInfo Registry)	Phông chữ {} trên trang {p}: CMap và CIDFont của nó ghi các registry khác nhau (CIDSystemInfo Registry)
 	Font {} on page {p}: its CMap and CIDFont name different orderings (CIDSystemInfo Ordering)	Phông chữ {} trên trang {p}: CMap và CIDFont của nó ghi các ordering khác nhau (CIDSystemInfo Ordering)
-	Font {} on page {p}: its CIDFont's Supplement is lower than its CMap's	Phông chữ {} trên trang {p}: Supplement của CIDFont thấp hơn của CMap
+	Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's	Phông chữ {} trên trang {p}: Supplement của CIDFont cao hơn của CMap
 	Font {} on page {p}: its CIDToGIDMap is neither a stream nor Identity	Phông chữ {} trên trang {p}: CIDToGIDMap của nó không phải là luồng cũng không phải Identity
 	Font {} on page {p} has no CIDToGIDMap	Phông chữ {} trên trang {p} không có CIDToGIDMap
 	Font {} on page {p}: its CMap {cmap} is neither predefined nor embedded	Phông chữ {} trên trang {p}: CMap {cmap} của nó không được định nghĩa sẵn cũng không được nhúng

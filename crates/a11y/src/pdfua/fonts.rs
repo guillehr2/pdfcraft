@@ -544,7 +544,8 @@ impl<'a> Font<'a> {
         }
         let cidfont = self.cidfont.clone().unwrap_or_default();
         // A CMap other than Identity selects CIDs of one character collection, so the CIDFont must
-        // be of that collection, at that Supplement or later (ISO 14289-1 7.21.3.1).
+        // be of that collection, at a Supplement no higher than the CMap's (ISO 14289-1 7.21.3.1).
+        // A CIDFont without one counts as Supplement 0.
         if let Some(cmap) = cmap {
             let font = self.system_info(&cidfont).unwrap_or_default();
             if cmap.registry != font.registry {
@@ -560,8 +561,8 @@ impl<'a> Font<'a> {
                 );
             }
             match cmap.supplement {
-                Some(s) if font.supplement.unwrap_or(0) < s => {
-                    c.add("31-003", self.finding("Font {} on page {p}: its CIDFont's Supplement is lower than its CMap's", Vec::new()));
+                Some(s) if font.supplement.unwrap_or(0) > s => {
+                    c.add("31-003", self.finding("Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's", Vec::new()));
                 }
                 Some(_) => {}
                 // A predefined CMap's Supplement is in the CMap itself, which PdfCraft doesn't read.

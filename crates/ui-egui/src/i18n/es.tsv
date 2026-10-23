@@ -2312,7 +2312,7 @@ action wizard	Start	Iniciar
 	Font (unnamed) on page {p} isn't embedded	Una fuente sin nombre de la página {p} no está incrustada
 	Font {} on page {p}: its CMap and CIDFont name different registries (CIDSystemInfo Registry)	Fuente {} de la página {p}: su CMap y su CIDFont indican registros distintos (CIDSystemInfo Registry)
 	Font {} on page {p}: its CMap and CIDFont name different orderings (CIDSystemInfo Ordering)	Fuente {} de la página {p}: su CMap y su CIDFont indican ordenaciones distintas (CIDSystemInfo Ordering)
-	Font {} on page {p}: its CIDFont's Supplement is lower than its CMap's	Fuente {} de la página {p}: el Supplement de su CIDFont es menor que el de su CMap
+	Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's	Fuente {} de la página {p}: el Supplement de su CIDFont es mayor que el de su CMap
 	Font {} on page {p}: its CIDToGIDMap is neither a stream nor Identity	Fuente {} de la página {p}: su CIDToGIDMap no es un flujo ni Identity
 	Font {} on page {p} has no CIDToGIDMap	La fuente {} de la página {p} no tiene CIDToGIDMap
 	Font {} on page {p}: its CMap {cmap} is neither predefined nor embedded	Fuente {} de la página {p}: su CMap {cmap} no está predefinido ni incrustado

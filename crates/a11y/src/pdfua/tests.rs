@@ -761,8 +761,12 @@ fn type0_cmaps_and_character_collections_agree() {
         objs.push(cmap(entries, program));
         verified(&objs)
     };
-    let r = embedded("/WMode 1", "/Custom usecmap", 2);
+    let r = embedded("/WMode 1", "/Custom usecmap", 6);
     assert!(font_failures(&r).is_superset(&ids(&["31-003", "31-007", "31-008"])), "{:?}", font_failures(&r));
+    assert_eq!(messages(&r, "31-003"), ["Font Sample on page 1: its CIDFont's Supplement is higher than its CMap's"]);
+    // The CIDFont's Supplement may be below its CMap's (4), not above it: the veraPDF corpus's
+    // 7.21.3.1-t01-pass-d has a CIDFont at 1 under a CMap at 2, and -fail-c one at 3 under 2.
+    assert!(!font_failures(&embedded("/WMode 1", "/WMode 1 def /UniJIS-UTF16-H usecmap", 2)).contains("31-003"));
     assert_eq!(messages(&r, "31-008"), ["Font Sample on page 1: its CMap uses CMap Custom, which isn't predefined"]);
     let fine = embedded("/WMode 1", "/WMode 1 def /UniJIS-UTF16-H usecmap", 4);
     assert!(font_failures(&fine).is_disjoint(&ids(&["31-001", "31-002", "31-003", "31-007", "31-008"])), "{:?}", font_failures(&fine));

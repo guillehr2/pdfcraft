@@ -1700,7 +1700,7 @@
 	Font (unnamed) on page {p} isn't embedded	Šriftas be pavadinimo puslapyje {p} neįterptas
 	Font {} on page {p}: its CMap and CIDFont name different registries (CIDSystemInfo Registry)	Šriftas {} puslapyje {p}: jo CMap ir CIDFont nurodo skirtingus registrus (CIDSystemInfo Registry)
 	Font {} on page {p}: its CMap and CIDFont name different orderings (CIDSystemInfo Ordering)	Šriftas {} puslapyje {p}: jo CMap ir CIDFont nurodo skirtingas tvarkas (CIDSystemInfo Ordering)
-	Font {} on page {p}: its CIDFont's Supplement is lower than its CMap's	Šriftas {} puslapyje {p}: jo CIDFont Supplement mažesnis nei jo CMap
+	Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's	Šriftas {} puslapyje {p}: jo CIDFont Supplement didesnis nei jo CMap
 	Font {} on page {p}: its CIDToGIDMap is neither a stream nor Identity	Šriftas {} puslapyje {p}: jo CIDToGIDMap nėra nei srautas, nei Identity
 	Font {} on page {p} has no CIDToGIDMap	Šriftas {} puslapyje {p} neturi CIDToGIDMap
 	Font {} on page {p}: its CMap {cmap} is neither predefined nor embedded	Šriftas {} puslapyje {p}: jo CMap {cmap} nėra nei iš anksto apibrėžtas, nei įterptas

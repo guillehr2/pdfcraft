@@ -615,7 +615,7 @@ pub const WORDINGS: &[&str] = &[
     // PDF/UA: fonts (Matterhorn checkpoint 31) and formulas (17-003).
     "Font {} on page {p}: its CMap and CIDFont name different registries (CIDSystemInfo Registry)",
     "Font {} on page {p}: its CMap and CIDFont name different orderings (CIDSystemInfo Ordering)",
-    "Font {} on page {p}: its CIDFont's Supplement is lower than its CMap's",
+    "Font {} on page {p}: its CIDFont's Supplement is higher than its CMap's",
     "Font {} on page {p}: its CIDToGIDMap is neither a stream nor Identity",
     "Font {} on page {p} has no CIDToGIDMap",
     "Font {} on page {p}: its CMap {cmap} is neither predefined nor embedded",
