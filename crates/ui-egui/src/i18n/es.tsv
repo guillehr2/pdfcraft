@@ -2277,18 +2277,25 @@ action wizard	Start	Iniciar
 	The document sets no language (Lang), and neither do its tags	El documento no indica ningún idioma (Lang), ni tampoco sus etiquetas
 	The bookmarks have no language: the document sets none (Lang)	Los marcadores no tienen idioma: el documento no indica ninguno (Lang)
 	The metadata has no language: the document sets none (Lang) and the metadata no xml:lang	Los metadatos no tienen idioma: el documento no indica ninguno (Lang) y los metadatos no tienen xml:lang
+	The document's language (Lang) {} isn't a language tag	El idioma del documento (Lang) {} no es una etiqueta de idioma
 	Standard structure type {} is remapped to {to}	El tipo de estructura estándar {} se reasigna a {to}
 	Role map entry {} leads round in a circle	La entrada {} del mapa de funciones lleva a un círculo
 	Structure type {} doesn't map to a standard type	El tipo de estructura {} no se asigna a un tipo estándar
 	The document uses both H and numbered headings (H1–H6)	El documento usa a la vez H y encabezados numerados (H1–H6)
 	its alternate text, actual text or expansion has no language (Lang)	su texto alternativo, texto real o expansión no tiene idioma (Lang)
 	no language (Lang) on it, above it or on the document	sin idioma (Lang) en él, por encima de él ni en el documento
+	its language (Lang) isn't a language tag	su idioma (Lang) no es una etiqueta de idioma
 	more than one H heading in it	contiene más de un encabezado H
 	not in a TOC	no está dentro de un TOC
 	not allowed directly in a TOC	no se admite directamente dentro de un TOC
 	not in a Ruby	no está dentro de un Ruby
 	not in a Warichu	no está dentro de un Warichu
 	not in a Table	no está dentro de un Table
+	not allowed directly inside {in}	no se admite directamente dentro de {in}
+	a second {} in its table	un segundo {} en su tabla
+	rows both directly in it and in THead, TBody or TFoot	tiene filas directamente y también dentro de THead, TBody o TFoot
+	not the first or last child of its table	no es ni el primer ni el último hijo de su tabla
+	not the first child of its list	no es el primer hijo de su lista
 	a header cell with no Scope, in a table that doesn't use Headers	celda de encabezado sin Scope, en una tabla que no usa Headers
 	no ID	sin ID
 	its ID is another Note's too	su ID es también el de otro Note

@@ -15,6 +15,8 @@ use crate::{Finding, Rule};
 #[derive(Debug, Default)]
 pub(crate) struct Scan {
     pub has_text: bool,
+    /// Some text has no language from a marked-content property list around it.
+    pub unlabelled_text: bool,
     pub has_images: bool,
     /// Some page paints something: text, a path, a shading or an image.
     pub painted: bool,
@@ -32,6 +34,18 @@ pub(crate) struct Scan {
     pub form_uses: HashMap<ObjRef, usize>,
     /// Form XObjects whose own content has marked content with an MCID.
     pub forms_with_mcid: HashSet<ObjRef>,
+    /// Page → the marked content (MCID) of its own content stream, and the text in each.
+    pub mcid_text: BTreeMap<usize, HashMap<i64, McidText>>,
+}
+
+/// The text in one marked-content sequence (MCID) of a page.
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct McidText {
+    /// It shows text.
+    pub text: bool,
+    /// Some of that text has no language from a marked-content property list: no /Lang on its
+    /// own sequence or on one around it (ISO 32000-1 §14.9.2.1).
+    pub unlabelled: bool,
 }
 
 const MAX_FORM_DEPTH: usize = 12;
@@ -46,6 +60,10 @@ struct Within {
     tagged: bool,
     /// Marked content tagged /Artifact.
     artifact: bool,
+    /// The MCID of the page's own marked content around it, if any.
+    mcid: Option<i64>,
+    /// A marked-content property list around it sets a language (/Lang).
+    lang: bool,
 }
 
 impl Within {
@@ -128,22 +146,34 @@ impl Walk<'_> {
                 b"BMC" => {
                     let artifact = op.name(0) == Some(b"Artifact");
                     artifacts_in_tagged += usize::from(artifact && within.tagged);
-                    stack.push(Within { tagged: within.tagged, artifact: within.artifact || artifact });
+                    stack.push(Within { artifact: within.artifact || artifact, ..within });
                 }
                 b"BDC" => {
                     let artifact = op.name(0) == Some(b"Artifact");
-                    let mcid = !artifact
-                        && match op.operands.get(1) {
-                            Some(Object::Dict(d)) => d.contains(b"MCID"),
-                            Some(Object::Name(n)) => {
-                                props.get(n).map(|x| self.doc.resolve(x)).and_then(|x| x.as_dict().map(|d| d.contains(b"MCID"))).unwrap_or(false)
-                            }
-                            _ => false,
-                        };
+                    let list = match op.operands.get(1) {
+                        Some(Object::Dict(d)) => Some(d.clone()),
+                        Some(Object::Name(n)) => props.get(n).map(|x| self.doc.resolve(x)).and_then(|x| x.as_dict().cloned()),
+                        _ => None,
+                    };
+                    let list = list.unwrap_or_default();
+                    let mcid = !artifact && list.contains(b"MCID");
                     has_mcid |= mcid;
                     artifacts_in_tagged += usize::from(artifact && within.tagged);
                     tagged_in_artifacts += usize::from(mcid && within.artifact);
-                    stack.push(Within { tagged: within.tagged || mcid, artifact: within.artifact || artifact });
+                    // An MCID in a form XObject belongs to the form's own stream, not the page's.
+                    let page_mcid = match (mcid, form) {
+                        (false, _) => within.mcid,
+                        (true, None) => list.get(b"MCID").map(|x| self.doc.resolve(x)).and_then(|x| x.as_int()),
+                        (true, Some(_)) => None,
+                    };
+                    if mcid
+                        && form.is_none()
+                        && let Some(m) = page_mcid
+                    {
+                        self.scan.mcid_text.entry(self.page).or_default().entry(m).or_default();
+                    }
+                    let lang = text_of(self.doc, &list, b"Lang").is_some_and(|l| is_language_tag(&l));
+                    stack.push(Within { tagged: within.tagged || mcid, artifact: within.artifact || artifact, mcid: page_mcid, lang: within.lang || lang });
                 }
                 b"EMC" => {
                     stack.pop();
@@ -152,6 +182,12 @@ impl Walk<'_> {
                     self.scan.has_text = true;
                     self.scan.painted = true;
                     untagged += usize::from(!inside);
+                    self.scan.unlabelled_text |= !within.lang;
+                    if let Some(m) = within.mcid {
+                        let seen = self.scan.mcid_text.entry(self.page).or_default().entry(m).or_default();
+                        seen.text = true;
+                        seen.unlabelled |= !within.lang;
+                    }
                     if text.mode != 3
                         && let Some(font) = text.font
                     {
@@ -227,6 +263,15 @@ pub(crate) fn catalog(doc: &Document) -> Dict {
 
 pub(crate) fn text_of(doc: &Document, d: &Dict, key: &[u8]) -> Option<String> {
     d.get(key).map(|o| doc.resolve(o)).and_then(|o| o.as_string().map(|s| s.to_text())).map(|s| s.trim().to_owned()).filter(|s| !s.is_empty())
+}
+
+/// Whether `s` is a language tag in the form RFC 3066 gives it, which ISO 32000-1 §14.9.2.1
+/// names: a primary subtag of 1 to 8 letters, then any number of subtags of 1 to 8 letters or
+/// digits, joined by hyphens. Every BCP 47 tag, which PDF 2.0 names, has this form too.
+pub(crate) fn is_language_tag(s: &str) -> bool {
+    let subtag = |p: &str, letters_only: bool| (1..=8).contains(&p.len()) && p.bytes().all(|b| if letters_only { b.is_ascii_alphabetic() } else { b.is_ascii_alphanumeric() });
+    let mut parts = s.split('-');
+    parts.next().is_some_and(|p| subtag(p, true)) && parts.all(|p| subtag(p, false))
 }
 
 fn doc_finding(sentence: &'static str) -> Vec<Finding> {

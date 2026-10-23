@@ -16,6 +16,7 @@ use std::sync::Arc;
 use pdfcraft_cos::{Dict, Document, ObjRef, Object};
 use pdfcraft_model::Page;
 
+use crate::content;
 use crate::{Finding, MAX_FINDINGS, Rule};
 
 /// Why a table's rows are irregular; `{min}` and `{max}` are the narrowest and widest row.
@@ -176,8 +177,10 @@ pub(crate) struct Frame {
     alt_above: bool,
     /// Has /E, the expansion of an abbreviation.
     pub(crate) expansion: bool,
-    /// Has /Lang.
+    /// Has /Lang, a language tag ([`crate::content::is_language_tag`]).
     pub(crate) lang: bool,
+    /// Has a /Lang that isn't a language tag.
+    pub(crate) bad_lang: bool,
     /// Has a /Summary attribute.
     summary: bool,
     /// A table cell with a /Scope attribute, and one with a /Headers attribute.
@@ -223,6 +226,10 @@ pub(crate) trait Visitor {
 
     /// An object reference (OBJR) to `obj` sits directly in the innermost of the `open` elements.
     fn object_reference(&mut self, _open: &[Frame], _obj: ObjRef) {}
+
+    /// Marked content `mcid` of page `page`'s own content stream sits directly in the innermost
+    /// of the `open` elements. Marked content in another stream (an MCR with /Stm) is not told.
+    fn marked_content(&mut self, _open: &[Frame], _page: Option<usize>, _mcid: i64) {}
 }
 
 /// The dictionary (or stream) that `/StructTreeRoot` names in the catalog, when there is one.
@@ -341,7 +348,10 @@ impl Walker<'_> {
             Object::Array(items) if !items.is_empty() => {
                 self.tasks.push(Task::Items { loc: loc.clone(), next: 0, len: items.len(), depth: depth + 1, page });
             }
-            Object::Int(_) => self.mark_content(true),
+            Object::Int(mcid) => {
+                self.mark_content(true);
+                v.marked_content(&self.frames, page, *mcid);
+            }
             Object::Ref(r) => self.reference(*r, depth, page, v),
             Object::Dict(_) => self.dict(loc, depth, page, None, v),
             _ => {}
@@ -364,7 +374,16 @@ impl Walker<'_> {
     fn dict<V: Visitor>(&mut self, loc: &Loc, depth: usize, page: Option<usize>, object: Option<ObjRef>, v: &mut V) {
         let Some(d) = loc.value().and_then(|o| o.as_dict()) else { return };
         match d.name(b"Type") {
-            Some(b"MCR") => return self.mark_content(true),
+            Some(b"MCR") => {
+                self.mark_content(true);
+                let mcid = d.get(b"MCID").map(|m| self.doc.resolve(m)).and_then(|m| m.as_int());
+                if let Some(mcid) = mcid
+                    && !d.contains(b"Stm")
+                {
+                    v.marked_content(&self.frames, self.page_of(d).or(page), mcid);
+                }
+                return;
+            }
             Some(b"OBJR") => {
                 self.mark_content(false);
                 let obj = d.get(b"Obj").and_then(Object::as_ref);
@@ -382,6 +401,7 @@ impl Walker<'_> {
         let Some(s) = d.name(b"S") else { return };
         let page = self.page_of(d).or(page);
         let alt = self.has_text(d, b"Alt") || self.has_text(d, b"ActualText");
+        let lang = content::text_of(self.doc, d, b"Lang").map(|l| content::is_language_tag(&l));
         let ty = self.standard(s);
         let kind = kind_of(&ty);
         let attrs = if matches!(kind, Kind::Table | Kind::Td | Kind::Th) { self.attr_dicts(d) } else { Vec::new() };
@@ -400,7 +420,8 @@ impl Walker<'_> {
             alt,
             alt_above: self.frames.last().is_some_and(|p| p.alt || p.alt_above),
             expansion: self.has_text(d, b"E"),
-            lang: self.has_text(d, b"Lang"),
+            lang: lang == Some(true),
+            bad_lang: lang == Some(false),
             summary: attr_int(&attrs, b"Summary").is_some(),
             scope: attrs.iter().any(|a| a.as_dict().is_some_and(|a| a.contains(b"Scope"))),
             headers: attrs.iter().any(|a| a.as_dict().is_some_and(|a| a.contains(b"Headers"))),

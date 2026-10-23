@@ -14,7 +14,10 @@ use crate::content::{self, Scan};
 use crate::structure::{self, FIRST_HEADING, Found, Frame, Kind, Visitor};
 use crate::{Finding, MAX_FINDINGS, Options, Rule, RuleResult};
 
-/// The Accessibility Checker rules whose findings are a failure condition as they stand.
+/// The Accessibility Checker rules whose findings are a failure condition as they stand. The
+/// Checker's Lbl and LBody rule is not among them: it also wants every Lbl in a list item, while
+/// ISO 32000 lets a label stand in a table of contents entry or a heading too. [`Tree`] checks
+/// LBody alone.
 const FROM_CHECKER: [(Rule, &str); 8] = [
     (Rule::TaggedContent, "01-005"),
     (Rule::CharacterEncoding, "10-001"),
@@ -22,8 +25,8 @@ const FROM_CHECKER: [(Rule, &str); 8] = [
     (Rule::OtherElementsAltText, "17-002"),
     (Rule::TableRows, "09-004"),
     (Rule::TableCells, "09-004"),
+    (Rule::TableRegularity, "09-004"),
     (Rule::ListItems, "09-005"),
-    (Rule::LblLBody, "09-005"),
 ];
 
 /// The structure types of ISO 32000-1 (PDF 1.7) §14.8.4: the standard types of PDF/UA-1. The
@@ -96,7 +99,8 @@ pub(super) fn run(doc: &Document, part: Part, c: &mut Collected) -> Option<u8> {
     let all: Vec<usize> = (0..pages.len()).collect();
     let scan = Scan::run(doc, &pages, &all);
     let cat = content::catalog(doc);
-    let doc_lang = content::text_of(doc, &cat, b"Lang").is_some();
+    let cat_lang = content::text_of(doc, &cat, b"Lang");
+    let doc_lang = cat_lang.as_deref().is_some_and(content::is_language_tag);
     let xmp = metadata(doc, &cat);
     let declared = xmp.as_deref().and_then(|x| xmp_value(x, "pdfuaid:part")).and_then(|p| p.trim().parse::<u8>().ok());
 
@@ -120,9 +124,14 @@ pub(super) fn run(doc: &Document, part: Part, c: &mut Collected) -> Option<u8> {
         c.add("01-005", Finding::plain(None, "The document isn't tagged, so none of its content is"));
     }
     document(doc, part, &cat, xmp.as_deref(), declared, c);
-    let Tree { found, raw_types, owners, any_lang, .. } = Tree::run(doc, &pages, doc_lang);
+    let Tree { found, raw_types, owners, any_lang, .. } = Tree::run(doc, &pages, &scan, doc_lang);
     if !doc_lang {
-        language(doc, &cat, xmp.as_deref(), scan.has_text, any_lang, &found, c);
+        // A language that isn't a language tag is no language; the finding says which it is.
+        if let Some(l) = cat_lang.as_ref().filter(|_| scan.unlabelled_text) {
+            let shown: String = l.chars().take(64).collect();
+            c.add("11-001", Finding::worded(None, "The document's language (Lang) {} isn't a language tag", vec![("{}", shown)]));
+        }
+        language(doc, &cat, xmp.as_deref(), scan.unlabelled_text && cat_lang.is_none(), any_lang, &found, c);
     }
     role_map(doc, &raw_types, c);
     for (id, found) in found {
@@ -211,11 +220,13 @@ fn pdf_version(doc: &Document, cat: &Dict) -> (u32, u32) {
 }
 
 /// The language conditions, when the document itself sets no language (catalog /Lang): then every
-/// text needs a language of its own, from its tag or one around it. `found` holds the tags without
-/// one; when no tag sets a language either, one finding says so instead of one per tag.
-fn language(doc: &Document, cat: &Dict, xmp: Option<&str>, has_text: bool, any_lang: bool, found: &BTreeMap<&'static str, Found>, c: &mut Collected) {
+/// text needs a language of its own, from its tag or one around it, or from a marked-content
+/// property list. `found` holds the tags without one; when no tag sets a language either, one
+/// finding says so instead of one per tag, if `unlabelled_text` (some text has no language from a
+/// property list either).
+fn language(doc: &Document, cat: &Dict, xmp: Option<&str>, unlabelled_text: bool, any_lang: bool, found: &BTreeMap<&'static str, Found>, c: &mut Collected) {
     if !any_lang {
-        if has_text {
+        if unlabelled_text {
             c.add("11-001", Finding::plain(None, NO_LANGUAGE));
         }
         if found.contains_key("11-002") {
@@ -316,11 +327,41 @@ struct Owner {
 }
 
 /// An open element, as the PDF/UA walk keeps it.
+#[derive(Default)]
 struct Open {
     /// A language applies: its own /Lang or an enclosing element's.
     lang: bool,
     /// H (unnumbered heading) children so far.
     plain_headings: usize,
+    /// Some of its marked content shows text that no language covers: none from the tags, and
+    /// none from a marked-content property list around the text.
+    unlabelled_text: bool,
+    /// Some of its marked content wasn't found in its page's content stream.
+    unread: bool,
+    /// Marked content of its page's own stream it holds, as the walk told it.
+    told: usize,
+    /// Its kids so far.
+    kids: usize,
+    /// In a Table: a Caption kid after the first kid, which then has to be the last.
+    late_caption: Option<(usize, Finding)>,
+    /// In a Table: THead and TFoot kids so far, and whether it holds rows directly and rows in
+    /// THead, TBody or TFoot.
+    heads: usize,
+    foots: usize,
+    bare_rows: bool,
+    row_groups: bool,
+}
+
+/// Whether the Checker's rules (or [`Tree`]'s LBody check) already report `kid` for standing in
+/// `parent`, so the nesting check need not.
+fn reported_elsewhere(parent: Kind, kid: Kind) -> bool {
+    match kid {
+        Kind::Tr => !matches!(parent, Kind::Table | Kind::Section),
+        Kind::Th | Kind::Td => parent != Kind::Tr,
+        Kind::Li => parent != Kind::L,
+        Kind::LBody => !matches!(parent, Kind::Li | Kind::NoteOrToc),
+        _ => false,
+    }
 }
 
 /// An open table: whether its cells use Headers, and its TH cells without Scope until it closes.
@@ -332,7 +373,8 @@ struct Heads {
 }
 
 /// The structure tree conditions, read in one walk.
-struct Tree {
+struct Tree<'a> {
+    scan: &'a Scan,
     doc_lang: bool,
     found: BTreeMap<&'static str, Found>,
     /// Every structure type in use, as written.
@@ -348,9 +390,10 @@ struct Tree {
     numbered_heading: bool,
 }
 
-impl Tree {
-    fn run(doc: &Document, pages: &[Page], doc_lang: bool) -> Tree {
+impl<'a> Tree<'a> {
+    fn run(doc: &Document, pages: &[Page], scan: &'a Scan, doc_lang: bool) -> Tree<'a> {
         let mut tree = Tree {
+            scan,
             doc_lang,
             found: BTreeMap::new(),
             raw_types: BTreeSet::new(),
@@ -372,21 +415,88 @@ impl Tree {
     fn add(&mut self, id: &'static str, index: usize, make: impl FnOnce() -> Finding) {
         self.found.entry(id).or_default().add(index, make);
     }
+
+    /// The kids ISO 32000-1 Tables 336 and 337 allow in tables and lists, for `e` opening in
+    /// `parent`, whose state is the innermost [`Open`].
+    fn nesting(&mut self, parent: &Frame, e: &Frame) {
+        let Some(open) = self.open.last_mut() else { return };
+        let first = open.kids == 0;
+        open.kids = open.kids.saturating_add(1);
+        let late_caption = open.late_caption.take();
+        let caption = e.ty.as_slice() == b"Caption";
+        let misplaced = || structure::worded(e, "not allowed directly inside {in}", vec![("{in}", pdf_name(&parent.ty))]);
+        let mut found: Vec<(&'static str, Finding)> = Vec::new();
+        if let Some((index, f)) = late_caption {
+            // A kid after a Caption that wasn't the first: the Caption isn't the last either.
+            self.found.entry("09-004").or_default().add(index, || f);
+        }
+        let Some(open) = self.open.last_mut() else { return };
+        if reported_elsewhere(parent.kind, e.kind) {
+            return;
+        }
+        match parent.kind {
+            Kind::Tr if !matches!(e.kind, Kind::Th | Kind::Td) => found.push(("09-004", misplaced())),
+            Kind::Section if e.kind != Kind::Tr => found.push(("09-004", misplaced())),
+            Kind::Table => match e.kind {
+                Kind::Tr => open.bare_rows = true,
+                Kind::Section => {
+                    open.row_groups = true;
+                    let count = match e.ty.as_slice() {
+                        b"THead" => Some(&mut open.heads),
+                        b"TFoot" => Some(&mut open.foots),
+                        _ => None,
+                    };
+                    if let Some(n) = count {
+                        *n = n.saturating_add(1);
+                        if *n == 2 {
+                            found.push(("09-004", structure::worded(e, "a second {} in its table", vec![("{}", pdf_name(&e.ty))])));
+                        }
+                    }
+                }
+                _ if caption => {
+                    if !first {
+                        open.late_caption = Some((e.index, structure::finding(e, "not the first or last child of its table")));
+                    }
+                }
+                _ => found.push(("09-004", misplaced())),
+            },
+            Kind::L => match e.kind {
+                Kind::Li | Kind::L => {}
+                _ if caption => {
+                    if !first {
+                        found.push(("09-005", structure::finding(e, "not the first child of its list")));
+                    }
+                }
+                _ => found.push(("09-005", misplaced())),
+            },
+            Kind::Li if !matches!(e.kind, Kind::Lbl | Kind::LBody) => found.push(("09-005", misplaced())),
+            _ => {}
+        }
+        for (id, f) in found {
+            self.add(id, e.index, || f);
+        }
+    }
 }
 
-impl Visitor for Tree {
+impl Visitor for Tree<'_> {
     fn enter(&mut self, ancestors: &[Frame], e: &Frame) {
         if self.raw_types.len() < MAX_KEPT {
             self.raw_types.insert(e.raw.clone());
         }
         self.any_lang |= e.lang;
+        let parent = ancestors.last();
+        let parent_ty = parent.map(|p| p.ty.as_slice());
+        if let Some(p) = parent {
+            self.nesting(p, e);
+        }
+        if e.kind == Kind::LBody && !matches!(parent.map(|p| p.kind), Some(Kind::Li | Kind::NoteOrToc)) {
+            self.add("09-005", e.index, || structure::finding(e, "not in an LI (list item)"));
+        }
         let lang = e.lang || self.open.last().is_some_and(|o| o.lang);
-        self.open.push(Open { lang, plain_headings: 0 });
+        self.open.push(Open { lang, ..Open::default() });
         if !self.doc_lang && !lang && (e.alt || e.expansion) {
             self.add("11-002", e.index, || structure::finding(e, "its alternate text, actual text or expansion has no language (Lang)"));
         }
-        let parent = ancestors.last();
-        let parent_ty = parent.map(|p| p.ty.as_slice());
         match e.ty.as_slice() {
             b"H" => {
                 self.plain_heading = true;
@@ -436,11 +546,19 @@ impl Visitor for Tree {
     }
 
     fn exit(&mut self, ancestors: &[Frame], e: &Frame) {
-        let lang = self.open.pop().is_some_and(|o| o.lang);
-        // Page content needs a language; a tag that only holds an annotation (OBJR) is checked
-        // under 11-004 and 11-005, with the annotation.
-        if !self.doc_lang && !lang && e.marked {
-            self.add("11-001", e.index, || structure::finding(e, "no language (Lang) on it, above it or on the document"));
+        let open = self.open.pop().unwrap_or_default();
+        // Text in the page content needs a language: from the tags, or from a marked-content
+        // property list around the text (ISO 32000-1 §14.9.2.1). Marked content without text
+        // needs none, and a tag that only holds an annotation (OBJR) is checked under 11-004 and
+        // 11-005, with the annotation. Marked content the walk couldn't look at (in another
+        // stream, or not found) counts as text without a language.
+        let unread = open.unread || (e.marked && open.told == 0);
+        if !self.doc_lang && !open.lang && (open.unlabelled_text || unread) {
+            let what = if e.bad_lang { "its language (Lang) isn't a language tag" } else { "no language (Lang) on it, above it or on the document" };
+            self.add("11-001", e.index, || structure::finding(e, what));
+        }
+        if e.kind == Kind::Table && open.bare_rows && open.row_groups {
+            self.add("09-004", e.index, || structure::finding(e, "rows both directly in it and in THead, TBody or TFoot"));
         }
         if e.kind == Kind::Table && self.tables.last().is_some_and(|t| t.depth == ancestors.len()) {
             let Some(table) = self.tables.pop() else { return };
@@ -454,6 +572,17 @@ impl Visitor for Tree {
         }
     }
 
+    fn marked_content(&mut self, _open: &[Frame], page: Option<usize>, mcid: i64) {
+        let seen = page.and_then(|p| self.scan.mcid_text.get(&p)).and_then(|m| m.get(&mcid)).copied();
+        if let Some(o) = self.open.last_mut() {
+            o.told = o.told.saturating_add(1);
+            match seen {
+                Some(t) => o.unlabelled_text |= t.text && t.unlabelled,
+                None => o.unread = true,
+            }
+        }
+    }
+
     fn object_reference(&mut self, open: &[Frame], obj: ObjRef) {
         let Some(e) = open.last() else { return };
         if self.owners.len() < MAX_KEPT && !self.owners.contains_key(&obj) {
@@ -461,6 +590,19 @@ impl Visitor for Tree {
             self.owners.insert(obj, Owner { ty: e.ty.clone(), alt: e.alt, lang });
         }
     }
+}
+
+/// Whether annotation `a` has some area inside `crop`. A rectangle of no width or height, or one
+/// wholly outside the page, shows nothing; a missing or malformed one is taken to show.
+fn shows_on(doc: &Document, a: &Dict, crop: [f64; 4]) -> bool {
+    let Some(r) = a.get(b"Rect").map(|r| doc.resolve(r)) else { return true };
+    let Some(v) = r.as_array().map(|v| v.iter().filter_map(|x| doc.resolve(x).as_f64()).collect::<Vec<f64>>()) else { return true };
+    let [x0, y0, x1, y1] = v.as_slice() else { return true };
+    if ![x0, y0, x1, y1].iter().all(|x| x.is_finite()) {
+        return true;
+    }
+    let (left, right, bottom, top) = (x0.min(*x1), x0.max(*x1), y0.min(*y1), y0.max(*y1));
+    left < right && bottom < top && left < crop[2] && right > crop[0] && bottom < crop[3] && top > crop[1]
 }
 
 fn pdf_name(n: &[u8]) -> String {
@@ -492,7 +634,7 @@ fn annotations(doc: &Document, pages: &[Page], owners: &HashMap<ObjRef, Owner>, 
         for (r, a) in annots {
             let subtype = a.name(b"Subtype").unwrap_or(b"").to_vec();
             let owner = r.and_then(|r| owners.get(&r));
-            let hidden = a.get(b"F").and_then(|f| doc.resolve(f).as_int()).is_some_and(|f| f & 2 != 0);
+            let hidden = a.get(b"F").and_then(|f| doc.resolve(f).as_int()).is_some_and(|f| f & 2 != 0) || !shows_on(doc, &a, page.crop(doc));
             let place = |pattern: &'static str, mut values: Vec<(&'static str, String)>| {
                 values.push(on_page.clone());
                 let mut f = Finding::worded(Some(p), pattern, values);
@@ -502,7 +644,9 @@ fn annotations(doc: &Document, pages: &[Page], owners: &HashMap<ObjRef, Owner>, 
             };
             let described = content::text_of(doc, &a, b"Contents").is_some();
             let kind = ("{}", pdf_name(&subtype));
-            if subtype == b"FileAttachment" && dict_at(doc, &a, b"FS").is_some_and(|fs| !(fs.contains(b"F") && fs.contains(b"UF"))) {
+            // An empty F or UF names no file.
+            let names_file = |fs: &Dict, key: &[u8]| content::text_of(doc, fs, key).is_some();
+            if subtype == b"FileAttachment" && dict_at(doc, &a, b"FS").is_some_and(|fs| !(names_file(&fs, b"F") && names_file(&fs, b"UF"))) {
                 c.add("28-016", place("File attachment annotation on page {p}: its file specification lacks F or UF", Vec::new()));
             }
             match subtype.as_slice() {
@@ -512,8 +656,8 @@ fn annotations(doc: &Document, pages: &[Page], owners: &HashMap<ObjRef, Owner>, 
                         c.add("28-017", place("Printer's mark annotation on page {p} is in the structure tree", Vec::new()));
                     }
                 }
-                // Popups belong to their parent annotation and are not tagged; hidden ones are not
-                // presented at all.
+                // Popups belong to their parent annotation and are not tagged; hidden ones, and
+                // ones with no area on the page, are not presented at all.
                 b"Popup" => {}
                 _ if hidden => {}
                 b"Widget" => {

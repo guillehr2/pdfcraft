@@ -1665,18 +1665,25 @@
 	The document sets no language (Lang), and neither do its tags	Dokumente nenurodyta kalba (Lang), jo žymose taip pat
 	The bookmarks have no language: the document sets none (Lang)	Žymelės neturi kalbos: dokumente ji nenurodyta (Lang)
 	The metadata has no language: the document sets none (Lang) and the metadata no xml:lang	Metaduomenys neturi kalbos: dokumente ji nenurodyta (Lang), o metaduomenyse nėra xml:lang
+	The document's language (Lang) {} isn't a language tag	Dokumento kalba (Lang) {} nėra kalbos žymė
 	Standard structure type {} is remapped to {to}	Standartinis struktūros tipas {} perskirtas į {to}
 	Role map entry {} leads round in a circle	Vaidmenų žemėlapio įrašas {} veda ratu
 	Structure type {} doesn't map to a standard type	Struktūros tipas {} nesusietas su standartiniu tipu
 	The document uses both H and numbered headings (H1–H6)	Dokumente naudojamos ir H, ir numeruotos antraštės (H1–H6)
 	its alternate text, actual text or expansion has no language (Lang)	jo alternatyvusis tekstas, tikrasis tekstas ar išplėtimas neturi kalbos (Lang)
 	no language (Lang) on it, above it or on the document	nėra kalbos (Lang) nei jame, nei aukščiau jo, nei dokumente
+	its language (Lang) isn't a language tag	jo kalba (Lang) nėra kalbos žymė
 	more than one H heading in it	jame yra daugiau nei viena H antraštė
 	not in a TOC	nepriklauso TOC
 	not allowed directly in a TOC	negali būti tiesiogiai TOC viduje
 	not in a Ruby	nepriklauso Ruby
 	not in a Warichu	nepriklauso Warichu
 	not in a Table	nepriklauso Table
+	not allowed directly inside {in}	negali būti tiesiogiai {in} viduje
+	a second {} in its table	antras {} jo lentelėje
+	rows both directly in it and in THead, TBody or TFoot	jame eilutės yra ir tiesiogiai, ir THead, TBody ar TFoot viduje
+	not the first or last child of its table	nėra nei pirmas, nei paskutinis savo lentelės vaikas
+	not the first child of its list	nėra pirmas savo sąrašo vaikas
 	a header cell with no Scope, in a table that doesn't use Headers	antraštės langelis be Scope lentelėje, kurioje nenaudojama Headers
 	no ID	nėra ID
 	its ID is another Note's too	tokį patį ID turi ir kitas Note
