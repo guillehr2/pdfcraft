@@ -181,7 +181,12 @@ impl Walk<'_> {
                         self.scan.mcid_text.entry(self.page).or_default().entry(m).or_default();
                     }
                     let lang = properties.as_ref().and_then(|d| text_of(self.doc, d, b"Lang")).is_some_and(|l| is_language_tag(&l));
-                    stack.push(Within { tagged: within.tagged || mcid, artifact: within.artifact || artifact, mcid: page_mcid, lang: within.lang || lang });
+                    stack.push(Within {
+                        tagged: within.tagged || mcid,
+                        artifact: within.artifact || artifact,
+                        mcid: page_mcid,
+                        lang: within.lang || lang,
+                    });
                 }
                 b"EMC" => {
                     stack.pop();
