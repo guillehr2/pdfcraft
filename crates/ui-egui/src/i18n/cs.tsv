@@ -2051,13 +2051,9 @@ key	Space	Mezerník
 	A colour space is nested too deeply to convert	Barevný prostor je vnořený příliš hluboko na převod
 	The spot colour {} has an alternate that can't be converted to CMYK yet	Přímá barva {} má alternativu, kterou zatím nelze převést do CMYK
 	A pattern over RGB or device-independent colour can't be converted to CMYK yet	Vzorek přes barvu RGB nebo nezávislou na zařízení zatím nelze převést do CMYK
-	{} colour can't be converted to CMYK yet	Barvu {} zatím nelze převést do CMYK
 	A content stream can't be read, so its colour can't be converted	Proud obsahu nelze přečíst, takže jeho barvu nelze převést
 	A colour operator's operands don't match its colour space	Operandy barevného operátoru neodpovídají jeho barevnému prostoru
 	A content stream is drawn with different resources in different places, so its colour can't be converted	Proud obsahu se na různých místech kreslí s různými prostředky, takže jeho barvu nelze převést
-	A shading in RGB or device-independent colour can't be converted to CMYK yet	Stínování v barvě RGB nebo nezávislé na zařízení zatím nelze převést do CMYK
-	A picture with other than 8 bits per component can't be converted to CMYK yet	Obrázek s jiným počtem bitů na složku než 8 zatím nelze převést do CMYK
-	A picture with a decode array or a colour-key mask can't be converted to CMYK yet	Obrázek s polem dekódování nebo maskou barevného klíče zatím nelze převést do CMYK
 	A picture's data can't be read, so it can't be converted to CMYK	Data obrázku nelze přečíst, takže ho nelze převést do CMYK
 	A JPEG picture in CMYK can't be converted yet	Obrázek JPEG v CMYK zatím nelze převést
 	An indexed colour space's table is too short to convert	Tabulka indexovaného barevného prostoru je na převod příliš krátká

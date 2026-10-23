@@ -1919,13 +1919,9 @@
 	A colour space is nested too deeply to convert	Um espaço de cor está aninhado profundamente demais para ser convertido
 	The spot colour {} has an alternate that can't be converted to CMYK yet	A cor especial {} tem uma alternativa que ainda não pode ser convertida para CMYK
 	A pattern over RGB or device-independent colour can't be converted to CMYK yet	Um padrão sobre cor RGB ou independente de dispositivo ainda não pode ser convertido para CMYK
-	{} colour can't be converted to CMYK yet	A cor {} ainda não pode ser convertida para CMYK
 	A content stream can't be read, so its colour can't be converted	Um fluxo de conteúdo não pode ser lido, então sua cor não pode ser convertida
 	A colour operator's operands don't match its colour space	Os operandos de um operador de cor não correspondem ao seu espaço de cor
 	A content stream is drawn with different resources in different places, so its colour can't be converted	Um fluxo de conteúdo é desenhado com recursos diferentes em lugares diferentes, então sua cor não pode ser convertida
-	A shading in RGB or device-independent colour can't be converted to CMYK yet	Um sombreamento em cor RGB ou independente de dispositivo ainda não pode ser convertido para CMYK
-	A picture with other than 8 bits per component can't be converted to CMYK yet	Uma imagem com outro número que não 8 bits por componente ainda não pode ser convertida para CMYK
-	A picture with a decode array or a colour-key mask can't be converted to CMYK yet	Uma imagem com matriz de decodificação ou máscara de cor-chave ainda não pode ser convertida para CMYK
 	A picture's data can't be read, so it can't be converted to CMYK	Os dados de uma imagem não podem ser lidos, então ela não pode ser convertida para CMYK
 	A JPEG picture in CMYK can't be converted yet	Uma imagem JPEG em CMYK ainda não pode ser convertida
 	An indexed colour space's table is too short to convert	A tabela de um espaço de cor indexado é curta demais para ser convertida
