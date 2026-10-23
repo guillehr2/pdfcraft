@@ -48,7 +48,7 @@ impl PdfCraftApp {
 }
 
 /// What the document declares: its standards and its output intents.
-fn declared_line(ui: &mut egui::Ui, app: &PdfCraftApp, t: &Tokens) {
+fn declared_line(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) {
     let declared = app.active_ids().and_then(|(_, id)| app.session.get(id)).map(|d| d.standards()).unwrap_or_default();
     let mut standards: Vec<String> = declared.pdfa.iter().map(|(p, c)| format!("PDF/A-{p}{}", c.to_lowercase())).collect();
     standards.extend(declared.pdfua.map(|p| format!("PDF/UA-{p}")));
