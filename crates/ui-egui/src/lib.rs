@@ -2519,16 +2519,21 @@ impl PdfCraftApp {
                 if pdfcraft_engine::preflight::find(value).is_none() {
                     return Err(format!("unknown preflight profile {value}"));
                 }
+                if self.active_ids().is_none() {
+                    return Err("no document".into());
+                }
                 self.preflight.profile = value.to_string();
                 self.run_preflight();
             }
             ("preflight-hit", _) => {
                 let (check, hit) =
                     value.split_once(':').and_then(|(c, h)| Some((c.parse().ok()?, h.parse().ok()?))).ok_or("preflight-hit: CHECK:HIT")?;
+                let active = self.active_ids().map(|(_, id)| id);
                 let found = self
                     .preflight
                     .results
                     .as_ref()
+                    .filter(|(doc, _)| Some(*doc) == active)
                     .and_then(|(_, r)| r.checks.get(check))
                     .is_some_and(|c: &pdfcraft_engine::preflight::CheckResult| c.hits.len() > hit);
                 if !found {

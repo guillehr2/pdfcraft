@@ -525,6 +525,11 @@ fn trapped_is_missing_wrong_or_disagrees() {
     let r = run_one(&doc, Check::Trapped);
     assert_eq!(messages(&r), ["The Trapped key and the metadata's pdf:Trapped disagree"]);
     assert_eq!((r.hits[0].object, r.hits[0].fixup), (Some(6), Some(Fixup::SetTrapped { trapped: true })));
+    // The key is right and the metadata's value isn't True or False: the metadata is wrong.
+    let doc = Pdf::new("").catalog("/Metadata 5 0 R").obj(&metadata("Unknown")).obj("<< /Trapped /False >>").trailer("/Info 6 0 R").open();
+    let r = run_one(&doc, Check::Trapped);
+    assert_eq!(messages(&r), ["Trapped is Unknown, but it must be /True or /False"]);
+    assert_eq!(r.hits[0].fixup, Some(Fixup::SetTrapped { trapped: false }));
     // Either one saying it is enough.
     assert_eq!(run_one(&Pdf::new("").trailer("/Info << /Trapped /False >>").open(), Check::Trapped).status, Status::Passed);
     assert_eq!(run_one(&Pdf::new("").catalog("/Metadata 5 0 R").obj(&metadata("True")).open(), Check::Trapped).status, Status::Passed);

@@ -409,6 +409,10 @@ pub(super) fn trapped(doc: &Document) -> Vec<Hit> {
         (None, Some(Err(v))) => {
             vec![at(Hit::new("Trapped is {}, but it must be /True or /False", Some(v.clone()))).fixup(Fixup::SetTrapped { trapped: false })]
         }
+        // The key says it, the metadata's value doesn't: the fixup writes the key's to both.
+        (Some(Ok(a)), Some(Err(v))) => {
+            vec![at(Hit::new("Trapped is {}, but it must be /True or /False", Some(v.clone()))).fixup(Fixup::SetTrapped { trapped: *a })]
+        }
         (None, None) => {
             vec![at(Hit::new("The document doesn't say whether it is trapped (Trapped)", None)).fixup(Fixup::SetTrapped { trapped: false })]
         }

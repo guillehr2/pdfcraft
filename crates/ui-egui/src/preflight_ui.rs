@@ -531,6 +531,14 @@ mod tests {
         assert!(h.state_mut().set_option("preflight", "no-such-profile").is_err());
         assert!(h.state_mut().set_option("preflight-hit", "0:9").is_err());
         assert!(h.state_mut().set_option("preflight-hit", "zero").is_err());
+        // Another tab is active: the results are the first document's, not this one's.
+        let other = h.state().session.get(h.state().views[0].id).unwrap().bytes.to_vec();
+        h.state_mut().open_bytes("other.pdf", None, other).unwrap();
+        h.run_steps(2);
+        assert!(h.state_mut().set_option("preflight-hit", "0:0").is_err());
+        // With no document at all, nothing runs.
+        let mut empty = PdfCraftApp::new();
+        assert!(empty.set_option("preflight", "check:image-resolution").is_err());
     }
 
     #[test]

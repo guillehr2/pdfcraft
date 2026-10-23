@@ -1093,6 +1093,7 @@ pub fn tools() -> Vec<ToolDef> {
                 &["doc", "profile", "path"],
             )),
         t("preflight_fix", "Preflight fix", "Preflight ▸ Fix: apply one fixup (set-trim-box: a TrimBox from the CropBox on pages with neither a TrimBox nor an ArtBox; set-trapped: Trapped /False, or /True with trapped; remove-scripts: document JavaScript, additional actions and JavaScript or Launch actions, keeping links to pages and web addresses), or with profile and no fixup every fixup that addresses what the profile finds (Analyze and fix), then return the profile's results again. One undoable step; fails when there is nothing to fix. No colour conversion or output intents.")
+            .destructive()
             .cmd("preflight.run")
             .with(schema(
                 json!({
