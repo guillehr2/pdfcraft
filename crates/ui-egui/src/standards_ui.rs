@@ -86,17 +86,7 @@ impl PdfCraftApp {
             let dialog = rfd::AsyncFileDialog::new().set_title(tl!("Choose ICC profile…")).add_filter("ICC", &["icc", "icm"]);
             self.ask_one(crate::pickers::Ask::File(dialog), None, move |app, path| {
                 let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
-                let read = std::fs::metadata(&path)
-                    .map_err(|e| e.to_string())
-                    .and_then(|m| {
-                        let max = pdfcraft_engine::pdfa::output::MAX_PROFILE;
-                        if m.len() > max as u64 {
-                            Err(format!("larger than {} MB", max / (1024 * 1024)))
-                        } else {
-                            std::fs::read(&path).map_err(|e| e.to_string())
-                        }
-                    })
-                    .and_then(IccProfile::read);
+                let read = read_profile(&path).and_then(IccProfile::read);
                 match read {
                     Ok(profile) => app.set_profile(pdfx, profile),
                     Err(e) => app.notify_fmt("Couldn't read the ICC profile {name}: {e}", &[("name", &name), ("e", &e)]),
@@ -193,6 +183,9 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> bool
     if app.pdfa.level != before {
         app.pdfa.issues = None;
         app.pdfa.refusal = None;
+        // What was converted and saved was for the old level.
+        app.pdfa.saved = None;
+        app.pdfa.fixed.clear();
     }
     #[cfg_attr(target_arch = "wasm32", allow(unused_mut, reason = "the button that sets it is on the desktop only"))]
     let mut choose = false;
@@ -389,6 +382,9 @@ pub(crate) fn pdfx_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) ->
     if (app.pdfx.level, app.pdfx.condition.clone()) != before {
         app.pdfx.findings = None;
         app.pdfx.refusal = None;
+        // What was converted and saved was for the old level or condition.
+        app.pdfx.saved = None;
+        app.pdfx.fixed.clear();
     }
     ui.add_space(6.0);
     egui::Frame::new().fill(t.hover).corner_radius(egui::CornerRadius::same(6)).inner_margin(egui::Margin::same(8)).show(ui, |ui| {
@@ -444,6 +440,28 @@ pub(crate) fn pdfx_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) ->
         None => {}
     }
     close
+}
+
+/// An ICC profile file's bytes: refused when the path isn't a regular file, or when it holds more
+/// than the largest profile PdfCraft takes, even if it grew after it was measured.
+#[cfg(not(target_arch = "wasm32"))]
+fn read_profile(path: &std::path::Path) -> Result<Vec<u8>, String> {
+    use std::io::Read;
+    let max = pdfcraft_engine::pdfa::output::MAX_PROFILE;
+    let too_large = || format!("larger than {} MB", max / (1024 * 1024));
+    let meta = std::fs::metadata(path).map_err(|e| e.to_string())?;
+    if !meta.is_file() {
+        return Err("not a file".into());
+    }
+    if meta.len() > max as u64 {
+        return Err(too_large());
+    }
+    let mut bytes = Vec::new();
+    std::fs::File::open(path).and_then(|f| f.take(max as u64 + 1).read_to_end(&mut bytes)).map_err(|e| e.to_string())?;
+    if bytes.len() > max {
+        return Err(too_large());
+    }
+    Ok(bytes)
 }
 
 #[cfg(test)]
@@ -566,6 +584,14 @@ mod tests {
         assert!(bytes.starts_with(b"%PDF-1.4"));
         let doc = pdfcraft_cos::Document::open(std::sync::Arc::new(bytes)).unwrap();
         assert_eq!(pdfx::verify(&doc, pdfx::Level::X1a2003), Vec::new());
+        // Another level: the file was saved and verified as PDF/X-1a, so the dialog stops saying so.
+        h.get_by_label("PDF/X-1a:2003").click();
+        h.run_steps(2);
+        h.get_by_label("PDF/X-4").click();
+        h.run_steps(2);
+        assert_eq!(h.state().pdfx.level, pdfx::Level::X4);
+        assert_eq!(h.state().pdfx.saved, None);
+        assert!(h.state().pdfx.fixed.is_empty());
         let _ = std::fs::remove_dir_all(&dir);
     }
 

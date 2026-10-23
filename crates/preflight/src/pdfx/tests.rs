@@ -336,6 +336,11 @@ fn the_output_intent_embeds_its_profile_or_names_a_registered_one() {
     let mut f = without(Level::X3_2003, true);
     f.resources = "/ColorSpace << /CS0 [/ICCBased 10 0 R] >>".into();
     only(&f, "pdfx.output-intent", "Device-independent colour is used, so the output intent needs an embedded profile");
+    // A registered characterization is a CMYK printing condition: RGB the content sets doesn't
+    // match it.
+    let mut f = without(Level::X3_2003, true);
+    f.content = "1 0 0 rg 10 10 100 100 re f".into();
+    only(&f, "pdfx.colour", "Content uses {} colour, which doesn't match the output intent's colour space");
 }
 
 #[test]

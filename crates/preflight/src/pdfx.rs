@@ -493,7 +493,10 @@ fn output_intent(doc: &Document, level: Level, f: &mut Findings) -> Option<Inten
                 at,
             );
         }
-        return Some(Intent { family: level.cmyk_only().then_some(Family::Cmyk), embedded: false });
+        // The characterizations in the ICC registry are printing conditions, CMYK ones: device
+        // colour is checked against CMYK, as with a CMYK profile.
+        let family = (level.cmyk_only() || registered(doc, oi)).then_some(Family::Cmyk);
+        return Some(Intent { family, embedded: false });
     };
     let at = profile_at.as_ref().or(at);
     let stream = match &*doc.resolve(profile_at) {
