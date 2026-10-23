@@ -930,7 +930,8 @@ fn lossless_decode_maps_each_component_before_colour_conversion() {
         ("DeviceRGB", vec![0, 64, 255], vec![0., 1., 1., 0., 0., 1.], [0, 191, 255]),
         ("DeviceGray", vec![0], vec![0.2, 0.8], [51, 51, 51]),
         ("DeviceGray", vec![128], vec![-1., 2.], [129, 129, 129]),
-        ("DeviceCMYK", vec![0, 0, 0, 0], vec![0., 1., 1., 0., 0., 1., 0., 1.], [255, 0, 255]),
+        // Magenta, in the sRGB the page draws it in: through the renderer's CMYK profile (#2269).
+        ("DeviceCMYK", vec![0, 0, 0, 0], vec![0., 1., 1., 0., 0., 1., 0., 1.], [236, 0, 140]),
     ] {
         let mut dict = image_dict(1, 1, space, 8);
         dict.set(b"Decode".to_vec(), decode_array(&decode));
